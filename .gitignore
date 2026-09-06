@@ -1,0 +1,38 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# סודות — מפתחות Firebase אמיתיים. .env.example (בלי ערכים) כן נשאר במעקב.
+.env
+
+# חבילות ZIP שנשלחות למשתמש בסוף כל סבב — נגזרות מ-dist, אין טעם לעקוב.
+solotalk*.zip
+
+# סרטוני אירועים אמיתיים של לקוחות — 4.7+ ג"ב, לא שייך ל-git.
+# גיבוי נפרד נדרש (Firebase כבר מחזיק עותק; לוודא גם דיסק חיצוני/ענן).
+סרטוני אירועים/
+
+# הרשאות Bash אישיות לסשן הזה (נתיבים זמניים וכו') — לא רלוונטי במחשב אחר.
+# launch.json כן נשאר: הוא מגדיר את שרת הפיתוח ומועיל בכל מכשיר.
+.claude/settings.local.json
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
