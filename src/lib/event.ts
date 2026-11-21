@@ -112,3 +112,49 @@ export function formatEventDate(date: string): string {
   if (Number.isNaN(d) || Number.isNaN(m)) return date;
   return `${d}.${m}.${year}`;
 }
+
+/** מספר באותיות: 23 → כ״ג, 787 → תשפ״ז */
+function gematria(n: number): string {
+  const ones = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'];
+  const tens = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'];
+  let rest = n;
+  let out = '';
+  for (const [value, letter] of [[400, 'ת'], [300, 'ש'], [200, 'ר'], [100, 'ק']] as const) {
+    while (rest >= value) {
+      out += letter;
+      rest -= value;
+    }
+  }
+  // ט״ו וט״ז, ולא צירופי האותיות של שם השם
+  if (rest === 15) out += 'טו';
+  else if (rest === 16) out += 'טז';
+  else out += tens[Math.floor(rest / 10)] + ones[rest % 10];
+  return out.length > 1 ? `${out.slice(0, -1)}״${out.slice(-1)}` : `${out}׳`;
+}
+
+/**
+ * התאריך העברי של האירוע: `03/12/2026` → «כ״ג בכסלו תשפ״ז».
+ *
+ * `null` כשהתאריך לא מפוענח או כשהדפדפן לא תומך בלוח העברי — הקורא פשוט
+ * מציג את התאריך הלועזי לבדו.
+ */
+export function hebrewDate(date: string): string | null {
+  const [day, month, year] = date.split('/').map((p) => Number(p));
+  if (!day || !month || !year) return null;
+  try {
+    // צהריים, כדי שהפרש אזורי זמן לא יזיז את התאריך ליום הקודם
+    const parts = new Intl.DateTimeFormat('he-u-ca-hebrew-nu-latn', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).formatToParts(new Date(year, month - 1, day, 12));
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+    const hebDay = Number(get('day'));
+    const hebYear = Number(get('year'));
+    const hebMonth = get('month').replace(/^ב/, '');
+    if (!hebDay || !hebYear || !hebMonth) return null;
+    return `${gematria(hebDay)} ב${hebMonth} ${gematria(hebYear % 1000)}`;
+  } catch {
+    return null;
+  }
+}

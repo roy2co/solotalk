@@ -3,7 +3,7 @@
 // למה קובץ נפרד: הטקסטים האלה מפוזרים על שישה מסכים. כשכל מסך מחזיק
 // `if (brit)` משלו, סוג אירוע נוסף (בר מצווה, יום הולדת) הופך לציד
 // אחרי תנאים. כאן סוג חדש = שורה אחת בטבלה.
-import type { AppConfig, DepthSettings, EventType } from '../types';
+import type { AppConfig, BritDesign, DepthSettings, EventType } from '../types';
 import { DEFAULT_BRIT_DEPTH_SETTINGS, DEFAULT_DEPTH_SETTINGS } from '../types';
 
 /**
@@ -31,6 +31,26 @@ export function genderize(text: string, type: EventType): string {
   return text.replace(/\{([^{}|]*)\|([^{}|]*)\}/g, (_, m: string, f: string) =>
     female ? f : m,
   );
+}
+
+/**
+ * העיצוב של מסכי האורח. `null` בחתונה — שם אין בחירה, רק ערכת הצבע.
+ * `classic` בברית = אותו מראה של החתונות, ולכן הקורא מטפל בו כמו ב-`null`.
+ */
+export function britDesignOf(config: AppConfig): BritDesign | null {
+  if (!isBritType(eventTypeOf(config))) return null;
+  return config.britDesign ?? 'pram';
+}
+
+/** «ייפתח בבר המצווה · 2039» — השנה שבה הסרטון אמור להיפתח */
+export function openingLine(config: AppConfig): string {
+  const type = eventTypeOf(config);
+  const date = (config.activeEvent?.date || config.eventDate || '').trim();
+  const year = Number(date.split('/')[2]) || new Date().getFullYear();
+  // בר מצווה בגיל 13, בת מצווה בגיל 12
+  return type === 'brita'
+    ? `ייפתח בבת המצווה · ${year + 12}`
+    : `ייפתח בבר המצווה · ${year + 13}`;
 }
 
 /** השם שמוצג לאורחים ונצרב בחותמת: שם התינוק/ת אם כבר הוכרז, אחרת שם האירוע */

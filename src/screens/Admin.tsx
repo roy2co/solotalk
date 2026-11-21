@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type {
   ActiveEvent,
   AppConfig,
+  BritDesign,
   DepthSettings,
   DisplayMode,
   EventType,
@@ -12,6 +13,7 @@ import type {
   VideoStampPos,
 } from '../types';
 import {
+  BRIT_DESIGN_OPTIONS,
   BRIT_RELATIONSHIP_LABELS,
   BRIT_RELATIONSHIPS,
   DEFAULT_BRIT_DEPTH_SETTINGS,
@@ -1816,6 +1818,44 @@ export default function Admin({ config, onSave, onExit }: Props) {
           relationships={BRIT_RELATIONSHIPS}
           labels={BRIT_RELATIONSHIP_LABELS}
         />
+      </div>
+      )}
+
+      {/* ================== מסך פתיחה: עיצוב ברית/בריתה ================== */}
+      {nav === 'welcome' && brit && (
+      <div className="admin-section">
+        <h2>עיצוב המסכים — {eventTypeLabel}</h2>
+        <p className="step-hint" style={{ marginBottom: 12 }}>
+          חל על המסכים שהאורח רואה לפני הצילום ואחריו. <b>מסך הצילום נשאר
+          כהה</b>, והשאלה שנצרבת בסרטון לא משתנה. בשני עיצובי צבעי המים
+          הצבע המשלים מתחלף לבד: כחול מאובק בברית, אפרסק בבריתה.
+        </p>
+        <div className="orientation-picker">
+          {BRIT_DESIGN_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              className={`orient-btn ${
+                (draft.britDesign ?? 'pram') === opt.value ? 'selected' : ''
+              }`}
+              onClick={() =>
+                // נשמר מיד, כמו מצב התצוגה — כדי שיציאה מהדשבורד תראה אותו
+                persistConfig(
+                  { ...draft, britDesign: opt.value as BritDesign },
+                  `עיצוב «${opt.label}» ✓`,
+                )
+              }
+            >
+              <span className="orient-label">{opt.label}</span>
+              <span className="orient-hint">{opt.hint}</span>
+            </button>
+          ))}
+        </div>
+        {(draft.britDesign ?? 'pram') !== 'classic' && (
+          <p className="step-hint" style={{ marginTop: 12 }}>
+            בעיצובים האלה «מצב תצוגה» וערכת הצבע שלמטה לא משפיעים על מסכי
+            האורח — רק על הדשבורד.
+          </p>
+        )}
       </div>
       )}
 

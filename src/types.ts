@@ -17,6 +17,21 @@ export const EVENT_TYPE_OPTIONS = [
 ] as const;
 export type EventType = (typeof EVENT_TYPE_OPTIONS)[number]['value'];
 
+/**
+ * עיצוב מסכי האורח במסלול ברית/בריתה.
+ *
+ * שני הראשונים הם «צבעי מים»: נייר קרם, חום עץ ואיורים רכים, עם צבע משלים
+ * שמתחלף לפי ברית (כחול מאובק) או בריתה (אפרסק). `classic` הוא המראה
+ * השחור־זהב של החתונות. **מסך הצילום נשאר כהה בכולם**, והשאלה שנצרבת
+ * בסרטון אינה מושפעת מהבחירה.
+ */
+export const BRIT_DESIGN_OPTIONS = [
+  { value: 'pram', label: 'עגלה ובלונים', hint: 'צבעי מים בקרם, עגלת וינטג׳ ליד התמונה' },
+  { value: 'garland', label: 'חבל כביסה וקוביות', hint: 'השם בקוביות עץ, חבל כביסה בראש המסך' },
+  { value: 'classic', label: 'קלאסי', hint: 'שחור וזהב, כמו בחתונות' },
+] as const;
+export type BritDesign = (typeof BRIT_DESIGN_OPTIONS)[number]['value'];
+
 /** ערכות צבע פרימיום בסגנון Liquid Glass */
 export const THEME_OPTIONS = ['gold', 'rose', 'champagne', 'emerald', 'sapphire', 'ruby'] as const;
 export type ThemeName = (typeof THEME_OPTIONS)[number];
@@ -268,6 +283,8 @@ export interface AppConfig {
    * תיקיית הענן, ואסור שישתנה), והשם מתווסף כאן אחרי ההכרזה.
    */
   babyName?: string;
+  /** עיצוב מסכי האורח במסלול ברית/בריתה. ראו `BRIT_DESIGN_OPTIONS`. */
+  britDesign?: BritDesign;
   /** מאגר השאלות של מסלול ברית/בריתה. נפרד לגמרי ממאגרי החתונה. */
   britQuestions?: Question[];
   /** ראו `questionBankVersion` — אותו מנגנון, למאגר הברית */

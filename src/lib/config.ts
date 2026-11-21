@@ -30,6 +30,7 @@ const LEGACY_DEMO_EVENT_NAME = 'רון & מיה';
 export const DEFAULT_CONFIG: AppConfig = {
   eventType: 'wedding',
   babyName: '',
+  britDesign: 'pram',
   britQuestions: DEFAULT_BRIT,
   britBankVersion: BRIT_BANK_VERSION,
   britIntroPrompt: DEFAULT_BRIT_INTRO,

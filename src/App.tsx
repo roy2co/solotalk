@@ -8,7 +8,9 @@ import {
   FRIENDS_PARENT_CATEGORY,
   FRIENDS_SUBCATEGORIES,
 } from './types';
-import { copyFor, eventTypeOf, isBritType } from './lib/eventType';
+import { britDesignOf, copyFor, eventTypeOf, isBritType } from './lib/eventType';
+import { Garland, NurseryDefs, Pram } from './components/NurseryArt';
+import WelcomeNursery from './screens/WelcomeNursery';
 import { selectBritQuestions } from './lib/britQuestions';
 import { loadConfig, saveConfig } from './lib/config';
 import { selectQuestions } from './lib/questions';
@@ -72,10 +74,28 @@ export default function App() {
     document.documentElement.dataset.theme = config?.theme || 'gold';
   }, [config?.theme]);
 
+  /**
+   * עיצוב «צבעי מים» של מסלול ברית/בריתה. `null` = המראה הרגיל.
+   *
+   * חל **רק על מסכי האורח ורק בזמן אירוע**: הדשבורד ומסך הקוד נשארים
+   * במראה שהמפעיל מכיר, ומסך הצילום נשאר כהה תמיד — שם הצילום הוא הרקע.
+   */
+  const design = config?.activeEvent ? britDesignOf(config) : null;
+  const nursery =
+    design && design !== 'classic' && !['recording', 'admin', 'pin'].includes(screen)
+      ? design
+      : null;
+
   // בהירות התצוגה - ציר נפרד מערכת הצבע, ולכן תכונה נפרדת.
+  // עיצוב צבעי המים בנוי על המצב הבהיר, ולכן הוא מדליק אותו בעצמו.
   useEffect(() => {
-    document.documentElement.dataset.mode = config?.displayMode || 'dark';
-  }, [config?.displayMode]);
+    const root = document.documentElement;
+    root.dataset.mode = nursery ? 'light' : config?.displayMode || 'dark';
+    if (nursery) root.dataset.skin = 'nursery';
+    else delete root.dataset.skin;
+    // קובע את הצבע המשלים באיורים: כחול מאובק לברית, אפרסק לבריתה
+    root.dataset.gender = config && eventTypeOf(config) === 'brita' ? 'f' : 'm';
+  }, [nursery, config]);
 
   /**
    * שמירת קונפיג ל-IndexedDB כשהוא משתנה.
@@ -222,6 +242,16 @@ export default function App() {
       {/* רקע חי — Aurora מאחורי כל המסכים */}
       <AuroraBg />
 
+      {nursery && <NurseryDefs />}
+      {/* איור קטן במסכי הביניים. לא במסך הפתיחה (יש לו איורים משלו) ולא
+          בספירה לאחור, שם התצוגה המקדימה של המצלמה צריכה את כל תשומת הלב. */}
+      {nursery && screen !== 'welcome' && screen !== 'countdown' && !startError &&
+        (nursery === 'garland' ? (
+          <Garland className="nd-art nd-garland" />
+        ) : (
+          <Pram className="nd-art nd-pram" />
+        ))}
+
       {/*
         האחסון לא נקרא — מוצג בכל מסך, כולל לאורחים.
         בלי החיווי הזה העמדה נראית פשוט «סגורה» וההגדרות נראות כאילו נמחקו,
@@ -298,11 +328,15 @@ export default function App() {
       {screen === 'welcome' &&
         !startError &&
         (config.activeEvent ? (
-          <Welcome
-            config={config}
-            onStart={startFlow}
-            onThemeChange={(theme) => setConfig({ ...config, theme })}
-          />
+          nursery ? (
+            <WelcomeNursery config={config} design={nursery} onStart={startFlow} />
+          ) : (
+            <Welcome
+              config={config}
+              onStart={startFlow}
+              onThemeChange={(theme) => setConfig({ ...config, theme })}
+            />
+          )
         ) : (
           <ClosedScreen config={config} />
         ))}
