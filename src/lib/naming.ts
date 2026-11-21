@@ -3,7 +3,7 @@
 // למה קובץ נפרד: אותה החלטה נדרשת בשלושה מקומות — המעלה (`uploader`), הייצוא
 // המקומי (`Admin`) ואריזת הענן (`cloudArchive`). כשהלוגיקה ישבה בכל אחד בנפרד
 // הם נפרדו זה מזה, ואותו סרטון קיבל שם אחר בכל מסלול.
-import { RELATIONSHIP_SLUG, type Relationship } from '../types';
+import { RELATIONSHIP_SLUG, type Relationship, type Depth } from '../types';
 
 /**
  * הקרבה **המדויקת ביותר** שהאורח בחר.
@@ -43,23 +43,28 @@ export function hhmm(ts: number): string {
 }
 
 /**
- * שם האובייקט בענן: `<קרבה>_<שעה>_<שייר>.mp4`
+ * שם האובייקט בענן: `<קרבה>_<עומק>_<שעה>_<שייר>.mp4`
  *
- * למשל `childhood-friends_0940_0ewzzq.mp4` במקום `rec_1787899224397_0ewzzq.mp4`.
+ * למשל `childhood-friends_few_0940_0ewzzq.mp4` במקום `rec_1787899224397_0ewzzq.mp4`.
  *
  * **השייר האקראי נשאר בכוונה.** `uploadBytes` דורס בשקט אובייקט קיים באותו
  * נתיב: שני אורחים מאותה קרבה שנשמרו באותה דקה (שני אייפדים באותו אירוע) היו
  * מוחקים זה את הסרטון של זה, בלי שום שגיאה. השייר כבר קיים במזהה ההקלטה
  * ומבטיח ייחודיות — זו ההגנה, לא קישוט.
+ *
+ * **העומק נוסף כדי שאפשר יהיה למקד «ברכות» בעריכה מאוחרת** (למשל לרכז אותן
+ * בסוף הסרט המאוחד) — לפני זה המידע היה קיים רק ב-`SessionMeta` המקומי
+ * ואבד ברגע שהסרטון עזב את המכשיר.
  */
 export function cloudObjectName(
   rels: Relationship[],
+  depth: Depth,
   timestamp: number,
   recordingId: string,
   ext: string,
 ): string {
   const tail = recordingId.split('_')[2] || recordingId.replace(/[^a-z0-9]/gi, '');
-  return `${relationshipSlug(rels)}_${hhmm(timestamp)}_${tail}.${ext}`;
+  return `${relationshipSlug(rels)}_${depth}_${hhmm(timestamp)}_${tail}.${ext}`;
 }
 
 /**
@@ -71,4 +76,15 @@ export function cloudObjectName(
 export function relationshipFromCloudName(fileName: string): string | null {
   const slug = fileName.replace(/\.[^.]+$/, '').split('_')[0];
   return SLUG_TO_LABEL[slug] ?? null;
+}
+
+const DEPTHS: Depth[] = ['blessing', 'few', 'many'];
+
+/**
+ * מחלץ את העומק משם קובץ שבענן. `null` לקבצים ישנים בלי המקטע הזה
+ * (מהפורמט שלפני שהעומק נוסף, או `rec_…` הישן עוד יותר) — בלי לשבור כלום.
+ */
+export function depthFromCloudName(fileName: string): Depth | null {
+  const part = fileName.replace(/\.[^.]+$/, '').split('_')[1];
+  return (DEPTHS as string[]).includes(part) ? (part as Depth) : null;
 }

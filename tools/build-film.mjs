@@ -6,27 +6,52 @@
  *
  * מה הוא עושה, לפי הסדר:
  *   1. מתקן משכי דגימה פגומים (באג ה-1988 שעות). בלי זה הסרט יורש אותו.
- *   2. מסדר את הקטעים לפי תבנית — קרבה, ובתוך כל בלוק לפי שעת הצילום.
- *   3. שוזר את הקטעים הקצרים בין הבלוקים כמפרידים.
- *   4. מחבר עם ffmpeg ב-`-c copy` — בלי קידוד מחדש, בלי אובדן איכות.
- *   5. מטמיע סימני פרקים ומייצר רשימת זמנים קריאה.
+ *   2. מזהה שתיקה בתחילת/סוף כל קטע (`silencedetect`) וחותך אותה — הקטע
+ *      מתחיל בדיוק כשהאורח מתחיל לדבר, לא לפניו. **לא** נוגע בשתיקות
+ *      באמצע הקטע. כל קטע עובר קידוד מחדש בשלב הזה (מהיר יחסית —
+ *      VideoToolbox של macOS), גם אם אין בו שתיקה לחתוך: כך כל הקטעים
+ *      יוצאים באותם פרמטרים בדיוק, וחיבור ה-`-c copy` בשלב 5 בטוח.
+ *   3. מסדר את הקטעים לפי תבנית — קרבה, ובתוך כל בלוק לפי שעת הצילום.
+ *      הקלטות «רק לברך» יוצאות מהבלוקים ומרוכזות כפרק אחרון, «הברכות».
+ *   4. שוזר את הקטעים הקצרים בין הבלוקים כמפרידים.
+ *   5. מחבר עם ffmpeg ב-`-c copy` — בלי קידוד נוסף, בלי אובדן איכות.
+ *   6. מטמיע סימני פרקים ומייצר רשימת זמנים קריאה.
+ *   7. אורז את התוצאה לזיפ.
+ *
+ * ⚠️ זיהוי «ברכה» תלוי בשם קובץ שנוצר **אחרי** שהעומק נוסף לשם האובייקט
+ * בענן (`src/lib/naming.ts` → `cloudObjectName`). הקלטות שהועלו לפני השינוי
+ * הזה לא נושאות את המידע ופשוט יישארו בבלוק הקרבה הרגיל שלהן.
  *
  * דרישות: ffmpeg (brew install ffmpeg)
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
+import zlib from 'node:zlib';
 
 // ---------- תבנית הסרט ----------
 // הסדר שבו הבלוקים מופיעים. השם הוא מה שיופיע כשם הפרק.
+// עבודה וצבא מאוחדים לתוך «החברים» — הם תת-קטגוריות של «חברים» גם
+// ב-`FRIENDS_SUBCATEGORIES` שב-`src/types.ts`, לא ענף נפרד משלהן.
 const TEMPLATE = [
+  { slugs: ['family', 'parents', 'grandparents', 'siblings', 'uncles-cousins', 'in-laws'], title: 'המשפחה' },
+  { slugs: ['friends', 'childhood-friends', 'inner-circle', 'work-friends', 'army-friends'], title: 'החברים' },
+  { slugs: ['other', 'guest'], title: 'אחר' },
   { slugs: ['couple'], title: 'החתן והכלה' },
-  { slugs: ['parents', 'grandparents', 'siblings'], title: 'המשפחה הקרובה' },
-  { slugs: ['uncles-cousins', 'in-laws', 'family'], title: 'המשפחה' },
-  { slugs: ['childhood-friends', 'friends', 'inner-circle'], title: 'החברים' },
-  { slugs: ['work-friends', 'army-friends'], title: 'עבודה וצבא' },
-  { slugs: ['other', 'guest'], title: 'ועוד' },
 ];
+
+/** מקבצת לפי סדר `TEMPLATE` (זהה למה שקורה לגוף הראשי), בלי מפרידים — משמש לברכות. */
+function groupByTemplateOrder(list) {
+  const used = new Set();
+  const ordered = [];
+  for (const block of TEMPLATE) {
+    const inBlock = list.filter((c) => block.slugs.includes(c.slug)).sort((a, b) => a.order - b.order);
+    inBlock.forEach((c) => used.add(c));
+    ordered.push(...inBlock);
+  }
+  const rest = list.filter((c) => !used.has(c)).sort((a, b) => a.order - b.order);
+  return [...ordered, ...rest];
+}
 
 /** קטע קצר מזה נחשב «מפריד» ונשזר בין הבלוקים במקום להיערם בתוכם */
 const INTERSTITIAL_MAX_SEC = 20;
@@ -116,6 +141,52 @@ function moofSeconds(file) {
   return n;
 }
 
+// ---------- חיתוך שתיקות ----------
+const SILENCE_NOISE_DB = -35; // מתחת לזה נחשב «שקט» (לא 0 מוחלט — יש רעש רקע באולם)
+const SILENCE_MIN_SEC = 0.4;  // רצף שקט קצר מזה לא נחשב (לא לחתוך הפסקת נשימה טבעית)
+const SILENCE_PAD_SEC = 0.15; // שוליים קטנים כדי לא לחתוך את ההברה הראשונה/אחרונה ממש
+
+/**
+ * מזהה שתיקה **רק** בתחילת ובסוף הקטע (לא באמצע) ומחזירה טווח חיתוך.
+ * `silencedetect` כותב ל-stderr, ולכן `spawnSync` ולא `execFileSync`
+ * (שמחזיר רק stdout).
+ */
+function detectSilenceTrim(file, totalSeconds) {
+  const res = spawnSync('ffmpeg', [
+    '-i', file, '-af', `silencedetect=noise=${SILENCE_NOISE_DB}dB:d=${SILENCE_MIN_SEC}`,
+    '-f', 'null', '-',
+  ], { encoding: 'utf8' });
+  const log = res.stderr || '';
+  const starts = [...log.matchAll(/silence_start:\s*(-?[\d.]+)/g)].map((m) => parseFloat(m[1]));
+  const ends = [...log.matchAll(/silence_end:\s*([\d.]+)/g)].map((m) => parseFloat(m[1]));
+
+  // שקט שמתחיל כמעט ב-0 = הקטע נפתח בשתיקה
+  let from = 0;
+  if (starts.length && starts[0] <= 0.05) from = Math.max(0, (ends[0] ?? 0) - SILENCE_PAD_SEC);
+  /**
+   * ⚠️ **לא סופרים "יותר start מ-end"** — ffmpeg (לפחות 9.0.1) כן סוגר את
+   * ה-silence_end גם כששקט נמשך עד ה-EOF בדיוק (נמדד: `silence_start: 3.0`
+   * ואז `silence_end: 4` על קטע של 4 שנ' בדיוק). הסתמכות על אי-זוגיות
+   * ספרה את זה כ"לא שתיקה סופית" ופספסה כל חיתוך סוף — נבדק בפועל: 1 שנ'
+   * שתיקה בסוף קטע 4 שנ' לא נחתכה כלל, למרות שהזיהוי עצמו עבד מושלם.
+   *
+   * הבדיקה הנכונה: **האם רצף השתיקה האחרון מגיע עד סוף הקובץ** — בין אם
+   * יש לו `silence_end` תואם (המקרה שנמדד כאן) ובין אם אין (המקרה שההנחה
+   * המקורית כיוונה אליו). שני המקרים שקולים מבחינתנו: יש שתיקה בזנב.
+   */
+  let to = totalSeconds;
+  if (starts.length) {
+    const lastStart = starts[starts.length - 1];
+    const matchedEnd = ends.length >= starts.length ? ends[starts.length - 1] : totalSeconds;
+    if (matchedEnd >= totalSeconds - 0.2) {
+      to = Math.min(totalSeconds, lastStart + SILENCE_PAD_SEC);
+    }
+  }
+
+  if (to - from < 1) return { from: 0, to: totalSeconds }; // הגנה: לא לחתוך כמעט הכל בטעות
+  return { from, to };
+}
+
 /**
  * משך בשניות + זמן צילום (אם הוטמע ב-mp4), לפי ffprobe — מקור האמת היחיד
  * אחרי התיקון. `creation_time` הוא עוגן אמין יותר לסדר מאשר המספור
@@ -164,10 +235,19 @@ const READABLE_LABEL_TO_SLUG = {
   'אחר': 'other',
 };
 
+/** מתוך `DEPTH_LABELS` ב-`src/types.ts` — ידני מאותה סיבה שהמפה למעלה ידנית */
+const READABLE_LABEL_TO_DEPTH = {
+  'רק לברך': 'blessing',
+  'כמה שאלות': 'few',
+  'פריסטייל': 'many',
+};
+
 /**
- * מזהה slug + עוגן-סדר-גיבוי מתוך שם הקובץ, בשני הפורמטים הקיימים בפועל:
- *   1. `<slug>_HHMM_<id>.mp4`                     — שם האובייקט הגולמי בענן.
- *   2. `<שם> - <תאריך> - NN[ - <קרבה בעברית>].mp4` — ייצוא קריא (מכשיר/ענן).
+ * מזהה slug + עומק + עוגן-סדר-גיבוי מתוך שם הקובץ, בשני הפורמטים הקיימים
+ * בפועל:
+ *   1. `<slug>_<עומק>_HHMM_<id>.mp4`                          — אובייקט גולמי בענן.
+ *      (קבצים ישנים מלפני שהעומק נוסף: `<slug>_HHMM_<id>.mp4`, בלי עומק.)
+ *   2. `<שם> - <תאריך> - NN[ - <קרבה בעברית>][ - <עומק בעברית>].mp4` — ייצוא קריא.
  *
  * ⚠️ ב-(2) ה-NN **לא תמיד עולה עם הסדר הכרוני האמיתי** — `Admin.tsx` ממספר
  * לפי סדר תצוגה יורד (חדש=01), בעוד `cloudArchive.ts` ממספר עולה (ישן=01).
@@ -176,14 +256,74 @@ const READABLE_LABEL_TO_SLUG = {
  */
 function slugOf(file) {
   const base = path.basename(file).replace(/\.[^.]+$/, '');
-  let m = base.match(/^(.+?)_(\d{4})_[a-z0-9]+$/i);
-  if (m) return { slug: m[1], fallbackOrder: Number(m[2]), fallbackDisplay: `${m[2].slice(0, 2)}:${m[2].slice(2)}` };
-  m = base.match(/^.* - \d{1,2}\.\d{1,2}\.\d{4} - (\d+)(?: - (.+))?$/);
+  let m = base.match(/^(.+?)_(blessing|few|many)_(\d{4})_[a-z0-9]+$/i);
+  if (m) return { slug: m[1], depth: m[2], fallbackOrder: Number(m[3]), fallbackDisplay: `${m[3].slice(0, 2)}:${m[3].slice(2)}` };
+  m = base.match(/^(.+?)_(\d{4})_[a-z0-9]+$/i);
+  if (m) return { slug: m[1], depth: null, fallbackOrder: Number(m[2]), fallbackDisplay: `${m[2].slice(0, 2)}:${m[2].slice(2)}` };
+  m = base.match(/^.* - \d{1,2}\.\d{1,2}\.\d{4} - (\d+)(?: - (.+?))?(?: - (רק לברך|כמה שאלות|פריסטייל))?$/);
   if (m) {
     const slug = READABLE_LABEL_TO_SLUG[m[2]] || 'guest';
-    return { slug, fallbackOrder: Number(m[1]), fallbackDisplay: `#${m[1]}` };
+    const depth = READABLE_LABEL_TO_DEPTH[m[3]] || null;
+    return { slug, depth, fallbackOrder: Number(m[1]), fallbackDisplay: `#${m[1]}` };
   }
-  return { slug: 'guest', fallbackOrder: 0, fallbackDisplay: '?' };
+  return { slug: 'guest', depth: null, fallbackOrder: 0, fallbackDisplay: '?' };
+}
+
+/**
+ * כותב ZIP בשיטת STORE עם קובץ אחד, ידנית — בלי להסתמך על `zip` המערכת.
+ *
+ * ⚠️ **חובה, לא נוחות.** ה-`zip` המובנה במק לא כותב UTF-8 תקין לשמות
+ * קבצים — נבדק בפועל: גם עם `LANG=en_US.UTF-8` מפורש, שם עברי יצא
+ * `??????????.mp4` בתוך הארכיון. זו בדיוק הסיבה ש-`src/lib/zip.ts` כבר
+ * נכתב כך לאפליקציית האורח; זו אותה שיטה בדיוק (STORE + דגל UTF-8
+ * `0x0800`), רק ב-Node עם `fs`/`Buffer` במקום `Blob` בדפדפן.
+ */
+function writeSingleFileZip(zipPath, filePath, entryName) {
+  const data = fs.readFileSync(filePath);
+  const crc = zlib.crc32(data) >>> 0;
+  const nameBytes = Buffer.from(entryName, 'utf8');
+  const now = new Date();
+  const dosTime = ((now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)) & 0xffff;
+  const dosDate = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()) & 0xffff;
+
+  const local = Buffer.alloc(30);
+  local.writeUInt32LE(0x04034b50, 0);
+  local.writeUInt16LE(20, 4);
+  local.writeUInt16LE(0x0800, 6); // דגל UTF-8 — בדיוק מה ש-zip של המערכת מפספס
+  local.writeUInt16LE(0, 8); // STORE
+  local.writeUInt16LE(dosTime, 10);
+  local.writeUInt16LE(dosDate, 12);
+  local.writeUInt32LE(crc, 14);
+  local.writeUInt32LE(data.length, 18);
+  local.writeUInt32LE(data.length, 22);
+  local.writeUInt16LE(nameBytes.length, 26);
+  local.writeUInt16LE(0, 28);
+
+  const central = Buffer.alloc(46 + nameBytes.length);
+  central.writeUInt32LE(0x02014b50, 0);
+  central.writeUInt16LE(20, 4);
+  central.writeUInt16LE(20, 6);
+  central.writeUInt16LE(0x0800, 8);
+  central.writeUInt16LE(0, 10);
+  central.writeUInt16LE(dosTime, 12);
+  central.writeUInt16LE(dosDate, 14);
+  central.writeUInt32LE(crc, 16);
+  central.writeUInt32LE(data.length, 20);
+  central.writeUInt32LE(data.length, 24);
+  central.writeUInt16LE(nameBytes.length, 28);
+  central.writeUInt32LE(0, 42); // היסט הכותרת המקומית — 0, כי היא ראשונה בקובץ
+  nameBytes.copy(central, 46);
+
+  const localSize = 30 + nameBytes.length + data.length;
+
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(1, 8);
+  end.writeUInt16LE(1, 10);
+  end.writeUInt32LE(central.length, 12);
+  end.writeUInt32LE(localSize, 16);
+
+  fs.writeFileSync(zipPath, Buffer.concat([local, nameBytes, data, central, end]));
 }
 
 // ---------- ראשי ----------
@@ -209,12 +349,13 @@ try {
   console.error('ffmpeg לא מותקן. הרץ:  brew install ffmpeg');
   process.exit(1);
 }
-try {
-  execFileSync('zip', ['-v'], { stdio: 'ignore' });
-} catch {
-  console.error('zip לא מותקן.');
-  process.exit(1);
-}
+// VideoToolbox (חומרה, מק בלבד) לקידוד מחדש מהיר בשלב חיתוך השתיקות.
+// בלעדיו נופלים ל-libx264 (תוכנה) — עובד בכל מקום, פשוט איטי יותר.
+const HW_ENCODER = execFileSync('ffmpeg', ['-hide_banner', '-encoders'], { stdio: ['ignore', 'pipe', 'ignore'] })
+  .toString().includes('h264_videotoolbox') ? 'h264_videotoolbox' : null;
+const VIDEO_ENCODE_ARGS = HW_ENCODER
+  ? ['-c:v', HW_ENCODER, '-b:v', '6M', '-maxrate', '8M', '-bufsize', '12M']
+  : ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20'];
 
 const files = fs.readdirSync(srcDir).filter((f) => f.toLowerCase().endsWith('.mp4')).sort();
 if (!files.length) { console.error('לא נמצאו קבצי mp4 ב-' + srcDir); process.exit(1); }
@@ -229,9 +370,9 @@ if (listOnly) {
   for (const f of files) {
     n++;
     const d = moofSeconds(path.join(srcDir, f));
-    const { slug, fallbackDisplay } = slugOf(f);
+    const { slug, depth, fallbackDisplay } = slugOf(f);
     total += d;
-    console.log(`  ${String(n).padStart(2)}. ${hhmmss(d).slice(3)}  ${slug.padEnd(18)} ${fallbackDisplay.padEnd(6)}   ${f}`);
+    console.log(`  ${String(n).padStart(2)}. ${hhmmss(d).slice(3)}  ${slug.padEnd(18)} ${(depth || '').padEnd(9)} ${fallbackDisplay.padEnd(6)}   ${f}`);
   }
   console.log(`\n  סה"כ ${hhmmss(total)}`);
 
@@ -269,35 +410,73 @@ fs.mkdirSync(outDir, { recursive: true });
 const prepDir = path.join(outDir, '_prepared');
 fs.mkdirSync(prepDir, { recursive: true });
 
-console.log(`\n── שלב 1: תיקון ומדידה (${files.length} קבצים) ──`);
+console.log(`\n── שלב 1: תיקון, חיתוך שתיקות ונרמול (${files.length} קבצים, ${HW_ENCODER ? 'VideoToolbox' : 'libx264 — איטי יותר'}) ──`);
 const clips = [];
 let totalFixed = 0;
+let totalTrimmed = 0;
 let idx = 0;
 for (const f of files) {
   idx++;
   if (skipNums.has(idx)) { console.log(`  ${String(idx).padStart(2)}. ${f.slice(0, 40)} — הושמט`); continue; }
   const raw = fs.readFileSync(path.join(srcDir, f));
   const { buf, fixed } = repairAndMeasure(raw);
-  const dest = path.join(prepDir, f);
-  fs.writeFileSync(dest, buf);
+  const repaired = path.join(prepDir, `r_${idx}.mp4`);
+  fs.writeFileSync(repaired, buf);
   totalFixed += fixed;
-  const { seconds, createdAt } = probeMeta(dest);
-  const { slug, fallbackOrder, fallbackDisplay } = slugOf(f);
+
+  const { seconds: rawSeconds, createdAt } = probeMeta(repaired);
+  const { from, to } = detectSilenceTrim(repaired, rawSeconds);
+  const cutLead = from > 0.05;
+  const cutTail = to < rawSeconds - 0.05;
+
+  // כל קטע עובר קידוד מחדש כאן, גם בלי שתיקה לחתוך — כדי שכל הקטעים
+  // יצאו באותם פרמטרים בדיוק ואפשר יהיה לחבר אותם ב-`-c copy` בביטחון.
+  const dest = path.join(prepDir, `t_${idx}.mp4`);
+  execFileSync('ffmpeg', ['-y', '-i', repaired, '-ss', String(from), '-to', String(to),
+    ...VIDEO_ENCODE_ARGS, '-pix_fmt', 'yuv420p',
+    '-c:a', 'aac', '-ar', '44100', '-ac', '2',
+    '-map_metadata', '0', '-movflags', '+faststart', dest],
+    { stdio: ['ignore', 'ignore', 'pipe'] });
+  fs.rmSync(repaired, { force: true });
+  const seconds = to - from;
+
+  const { slug, depth, fallbackOrder, fallbackDisplay } = slugOf(f);
   const order = createdAt ?? fallbackOrder;
   const timeLabel = createdAt ? israelTime(createdAt) : fallbackDisplay;
-  clips.push({ file: dest, name: f, slug, order, timeLabel, seconds });
-  if (fixed) console.log(`  ${f.slice(0, 34).padEnd(36)} תוקנו ${fixed} · ${hhmmss(seconds)}`);
+  clips.push({ file: dest, name: f, slug, depth, order, timeLabel, seconds });
+
+  const notes = [];
+  if (fixed) notes.push(`תוקנו ${fixed} משכים`);
+  if (cutLead || cutTail) {
+    totalTrimmed++;
+    notes.push(`שתיקה${cutLead ? ` התחלה -${from.toFixed(1)}s` : ''}${cutTail ? ` סוף -${(rawSeconds - to).toFixed(1)}s` : ''}`);
+  }
+  if (notes.length) console.log(`  ${f.slice(0, 34).padEnd(36)} ${notes.join(' · ')} · ${hhmmss(seconds)}`);
 }
-console.log(`  סה"כ תוקנו ${totalFixed} משכים פגומים${skipNums.size ? ` · הושמטו ${skipNums.size} קטעים` : ''}`);
+console.log(`  סה"כ תוקנו ${totalFixed} משכים פגומים · נחתכה שתיקה ב-${totalTrimmed} קטעים${skipNums.size ? ` · הושמטו ${skipNums.size} קטעים` : ''}`);
 
 console.log('\n── שלב 2: סידור לפי תבנית ──');
+// ברכות מרוכזות בסוף הסרט ולא בבלוק הקרבה שלהן — יוצאות מהמאגר לפני החלוקה
+// לבלוקים ולפני זיהוי המפרידים, כדי שלא ייבלעו כ«קטע קצר» באמצע הסרט.
+const blessings = clips.filter((c) => c.depth === 'blessing');
+const nonBlessing = clips.filter((c) => c.depth !== 'blessing');
+
+// קטע קצר נהיה «מפריד» רק אם יש עוד קטע מאותה קרבה — אחרת בלוק שלם עם קטע
+// יחיד קצר (למשל אירוע-בדיקה עם קטע אחד לכל קרבה) היה נעלם לגמרי ל«לסיום».
+const bySlugCount = new Map();
+for (const c of nonBlessing) bySlugCount.set(c.slug, (bySlugCount.get(c.slug) || 0) + 1);
+const belongsToBlock = (slug) => TEMPLATE.some((b) => b.slugs.includes(slug));
+
 const used = new Set();
-const shorts = clips.filter((c) => c.seconds < INTERSTITIAL_MAX_SEC);
+const shorts = nonBlessing.filter((c) => {
+  if (c.seconds >= INTERSTITIAL_MAX_SEC) return false;
+  return !belongsToBlock(c.slug) || (bySlugCount.get(c.slug) || 0) > 1;
+});
 shorts.forEach((c) => used.add(c.file));
 
 const timeline = [];
 for (const block of TEMPLATE) {
-  const inBlock = clips
+  const inBlock = nonBlessing
     .filter((c) => block.slugs.includes(c.slug) && !used.has(c.file))
     .sort((a, b) => a.order - b.order);
   if (!inBlock.length) continue;
@@ -308,13 +487,17 @@ for (const block of TEMPLATE) {
   if (filler) timeline.push({ chapter: null, clips: [filler] });
 }
 // כל מה שלא נתפס בתבנית + קצרים שנשארו
-const rest = clips.filter((c) => !used.has(c.file) && !shorts.includes(c));
+const rest = nonBlessing.filter((c) => !used.has(c.file) && !shorts.includes(c));
 const leftovers = [...rest, ...shorts].sort((a, b) => a.order - b.order);
 if (leftovers.length) {
   // אם הבלוק האחרון כבר נושא את אותו שם — מאחדים במקום ליצור פרק כפול
   const last = [...timeline].reverse().find((s) => s.chapter);
-  if (last && last.chapter === 'ועוד') last.clips.push(...leftovers);
+  if (last && last.chapter === 'אחר') last.clips.push(...leftovers);
   else timeline.push({ chapter: 'לסיום', clips: leftovers });
+}
+if (blessings.length) {
+  // אותו סדר קטגוריות כמו הגוף הראשי — משפחה ← חברים ← אחר ← חתן וכלה
+  timeline.push({ chapter: 'הברכות', clips: groupByTemplateOrder(blessings) });
 }
 
 for (const seg of timeline) {
@@ -359,10 +542,10 @@ fs.rmSync(listFile, { force: true });
 fs.rmSync(metaFile, { force: true });
 
 console.log('\n── שלב 4: אריזה לזיפ ──');
-// בלי דחיסה (-0): הווידאו כבר דחוס, DEFLATE רק מבזבז זמן. ראו src/lib/zip.ts.
+// בלי דחיסה: הווידאו כבר דחוס, DEFLATE רק יבזבז זמן.
 const zipFile = path.join(outDir, path.basename(final, '.mp4') + '.zip');
 fs.rmSync(zipFile, { force: true });
-execFileSync('zip', ['-j', '-0', zipFile, final], { stdio: ['ignore', 'ignore', 'pipe'] });
+writeSingleFileZip(zipFile, final, path.basename(final));
 
 const mb = fs.statSync(final).size / 1048576;
 console.log(`\n✅ נוצר: ${final}`);

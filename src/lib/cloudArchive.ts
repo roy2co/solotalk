@@ -12,7 +12,8 @@ import {
   type StorageReference,
 } from 'firebase/storage';
 import { getCloudStorage, ensureAuth } from './firebase';
-import { relationshipFromCloudName, safeSegment } from './naming';
+import { relationshipFromCloudName, depthFromCloudName, safeSegment } from './naming';
+import { DEPTH_LABELS } from '../types';
 
 /** שם קובץ הסמן שמחזיק את השם הקריא של המכשיר */
 const DEVICE_MARKER = '_device.json';
@@ -131,8 +132,9 @@ function parseEventId(id: string): { coupleName: string; date: string } {
  * `<שם הזוג> - <תאריך> - <מספר> - <קרבה>.mp4`, זהה בצורתו לייצוא מהמכשיר —
  * כך שאותו סרטון נקרא אותו דבר בשני מסלולי המסירה.
  *
- * **הקרבה מגיעה משם הקובץ בענן**, שמאז השינוי מתחיל ב-slug של הקרבה. קבצים
- * שהועלו קודם (`rec_…`) לא מכילים את המידע ופשוט לא יקבלו את החלק הזה.
+ * **הקרבה והעומק מגיעים משם הקובץ בענן**, שמאז השינוי מתחיל ב-slug של הקרבה
+ * (ומאז שינוי מאוחר יותר — גם slug של העומק). קבצים שהועלו קודם (`rec_…`
+ * הישן, או פורמט הקרבה-בלבד) לא מכילים את המידע ופשוט לא יקבלו את החלק הזה.
  *
  * **המספר הסידורי הוא מה שמבטיח ייחודיות** בתוך ה-ZIP. קודם היה כאן חותמת
  * זמן, ושני אורחים שסיימו באותה שנייה קיבלו שם זהה — כלומר אחד דרס את השני
@@ -152,7 +154,9 @@ function readableName(
     date || `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`;
   const rel = relationshipFromCloudName(file.ref.name);
   const relPart = rel ? ` - ${safeSegment(rel)}` : '';
-  return `${base} - ${day} - ${p(index + 1)}${relPart}.${ext}`;
+  const depth = depthFromCloudName(file.ref.name);
+  const depthPart = depth ? ` - ${DEPTH_LABELS[depth]}` : '';
+  return `${base} - ${day} - ${p(index + 1)}${relPart}${depthPart}.${ext}`;
 }
 
 /** רשומה שטוחה מהענן, לפני קיבוץ */

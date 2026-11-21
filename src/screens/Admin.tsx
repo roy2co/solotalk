@@ -128,11 +128,12 @@ function filenameFor(rec: RecordingInfo, index: number): string {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 40);
-  // הקרבה בסוף ולא בהתחלה: כך המיון בתיקייה נשאר לפי סדר הערב, והזוג עדיין
-  // רואה מי מדבר בלי לפתוח. הקלטה ישנה בלי קרבה פשוט לא מקבלת את החלק הזה.
+  // הקרבה והעומק בסוף ולא בהתחלה: כך המיון בתיקייה נשאר לפי סדר הערב, והזוג
+  // עדיין רואה מי מדבר בלי לפתוח. הקלטה ישנה בלי קרבה פשוט לא מקבלת את החלק הזה.
   const rel = specificRelationship(rec.meta.relationship);
   const relPart = rel ? ` - ${safeSegment(rel)}` : '';
-  return `${name} - ${date} - ${p(index + 1)}${relPart}.${extForMime(rec.mimeType)}`;
+  const depthPart = ` - ${safeSegment(DEPTH_LABELS[rec.meta.depth])}`;
+  return `${name} - ${date} - ${p(index + 1)}${relPart}${depthPart}.${extForMime(rec.mimeType)}`;
 }
 
 function formatDuration(ms: number): string {

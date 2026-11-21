@@ -220,8 +220,8 @@ export async function processQueue(): Promise<void> {
        * יחיד לתיקייה נפרדת לכל סרטון. שטוח לפי אירוע = כל הסרטונים של
        * הזוג נמצאים במקום אחד, בענן ובארכיון כאחד.
        *
-       * **שם הקובץ** נגזר מהקרבה שהאורח בחר, לא ממזהה ההקלטה:
-       * `rec_1787899224397_0ewzzq.mp4` → `childhood-friends_0940_0ewzzq.mp4`.
+       * **שם הקובץ** נגזר מהקרבה והעומק שהאורח בחר, לא ממזהה ההקלטה:
+       * `rec_1787899224397_0ewzzq.mp4` → `childhood-friends_few_0940_0ewzzq.mp4`.
        * חל על העלאות חדשות בלבד; מה שכבר בענן שומר על שמו.
        *
        * מוצהר **מחוץ** ל-`try` בכוונה: ה-`catch` זקוק לו כדי לבדוק אם
@@ -229,6 +229,7 @@ export async function processQueue(): Promise<void> {
        */
       const path = `recordings/${folder}/${cloudObjectName(
         next.meta.relationship,
+        next.meta.depth,
         next.meta.timestamp,
         next.id,
         ext,
