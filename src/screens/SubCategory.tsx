@@ -4,7 +4,15 @@ import { SUB_OTHER } from '../types';
 
 interface Props {
   title: string;
+  subtitle?: string;
   options: readonly Relationship[];
+  /** תווית תצוגה שונה משם הקרבה (מסלול ברית). חסר = שם הקרבה עצמו */
+  labels?: Record<string, string>;
+  /**
+   * להוסיף את «אחר» הכללי בסוף. `false` כשהרשימה כבר מכילה «אחר» כקרבה
+   * אמיתית — אחרת הוא היה מופיע פעמיים.
+   */
+  withOther?: boolean;
   onNext: (selected: Relationship[]) => void;
   onBack: () => void;
 }
@@ -22,7 +30,10 @@ interface Props {
  */
 export default function SubCategoryScreen({
   title,
+  subtitle = 'כדי שנתאים לכם את השאלות 💛',
   options,
+  labels,
+  withOther = true,
   onNext,
   onBack,
 }: Props) {
@@ -34,7 +45,7 @@ export default function SubCategoryScreen({
   const choose = (opt: string) => {
     setSelected(opt);
     // «אחר» רק מאשר שאין קטגוריה מדויקת, ולכן ממשיכים עם קטגוריית האב
-    onNext(opt === SUB_OTHER ? [] : ([opt] as Relationship[]));
+    onNext(withOther && opt === SUB_OTHER ? [] : ([opt] as Relationship[]));
   };
 
   return (
@@ -44,16 +55,16 @@ export default function SubCategoryScreen({
       </button>
 
       <h2>{title}</h2>
-      <p className="subtitle">כדי שנתאים לכם את השאלות 💛</p>
+      <p className="subtitle">{subtitle}</p>
 
       <div className="cards family-sub">
-        {[...options, SUB_OTHER].map((opt) => (
+        {(withOther ? [...options, SUB_OTHER] : [...options]).map((opt) => (
           <button
             key={opt}
             className={`card glass ${selected === opt ? 'selected' : ''}`}
             onClick={() => choose(opt)}
           >
-            <span className="name">{opt}</span>
+            <span className="name">{labels?.[opt] ?? opt}</span>
           </button>
         ))}
       </div>

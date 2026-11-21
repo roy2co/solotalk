@@ -7,9 +7,19 @@ interface Props {
   onChange: (questions: Question[]) => void;
   /** כמה פעמים אורחים דילגו על כל שאלה (לפי טקסט) — מוצג ליד השאלה */
   skipStats?: Record<string, number>;
+  /** הקרבות שאפשר לתייג אליהן. ברירת מחדל: כל קרבות החתונה */
+  relationships?: readonly Relationship[];
+  /** תוויות תצוגה לקרבות (מסלול ברית) */
+  labels?: Record<string, string>;
 }
 
-export default function QuestionEditor({ value, onChange, skipStats }: Props) {
+export default function QuestionEditor({
+  value,
+  onChange,
+  skipStats,
+  relationships = ALL_RELATIONSHIPS,
+  labels,
+}: Props) {
   const update = (id: string, patch: Partial<Question>) => {
     onChange(value.map((q) => (q.id === id ? { ...q, ...patch } : q)));
   };
@@ -62,13 +72,13 @@ export default function QuestionEditor({ value, onChange, skipStats }: Props) {
           </div>
           <div className="q-chips">
             <span className="q-chips-label">מתאים ל:</span>
-            {ALL_RELATIONSHIPS.map((rel) => (
+            {relationships.map((rel) => (
               <button
                 key={rel}
                 className={`chip ${q.relationships.includes(rel) ? 'selected' : ''}`}
                 onClick={() => toggleRel(q, rel)}
               >
-                {rel}
+                {labels?.[rel] ?? rel}
               </button>
             ))}
             {q.relationships.length === 0 && (

@@ -1,5 +1,16 @@
 import type { AppConfig, Question, Relationship } from '../types';
-import { ALL_RELATIONSHIPS, DEFAULT_DEPTH_SETTINGS, LEGACY_RELATIONSHIP_MAP } from '../types';
+import {
+  ALL_RELATIONSHIPS,
+  DEFAULT_BRIT_DEPTH_SETTINGS,
+  DEFAULT_DEPTH_SETTINGS,
+  LEGACY_RELATIONSHIP_MAP,
+} from '../types';
+import {
+  BRIT_BANK_VERSION,
+  DEFAULT_BRIT,
+  DEFAULT_BRIT_BLESSING,
+  DEFAULT_BRIT_INTRO,
+} from './britQuestions';
 import {
   DEFAULT_GENERIC,
   DEFAULT_HARDCORE,
@@ -17,6 +28,13 @@ const STORAGE_KEY = 'soloTalk.config.v1';
 const LEGACY_DEMO_EVENT_NAME = 'רון & מיה';
 
 export const DEFAULT_CONFIG: AppConfig = {
+  eventType: 'wedding',
+  babyName: '',
+  britQuestions: DEFAULT_BRIT,
+  britBankVersion: BRIT_BANK_VERSION,
+  britIntroPrompt: DEFAULT_BRIT_INTRO,
+  britBlessingPrompt: DEFAULT_BRIT_BLESSING,
+  britDepthSettings: { ...DEFAULT_BRIT_DEPTH_SETTINGS },
   depthSettings: { ...DEFAULT_DEPTH_SETTINGS },
   // ריק בכוונה: השדה חובה, והכפתור מושבת עד שממלאים אותו. שם דמה כברירת
   // מחדל היה נכנס למזהה האירוע, לתיקיית הענן, לשמות הקבצים ולמסך האורחים.
@@ -93,6 +111,15 @@ function mergeConfig(parsed: Partial<AppConfig> & { questions?: unknown }): AppC
     merged.hardcoreQuestions = DEFAULT_HARDCORE;
     merged.questionBankVersion = QUESTION_BANK_VERSION;
   }
+  // אותו מנגנון למאגר הברית. קונפיג שנשמר לפני שהמסלול נוסף אין בו מאגר
+  // בכלל (`britBankVersion` חסר = 0), ולכן הוא מקבל את ברירת המחדל כאן.
+  if (
+    !Array.isArray(parsed.britQuestions) ||
+    (parsed.britBankVersion ?? 0) < BRIT_BANK_VERSION
+  ) {
+    merged.britQuestions = DEFAULT_BRIT;
+    merged.britBankVersion = BRIT_BANK_VERSION;
+  }
   // ---- מזהה מכשיר ----
   // נוצר פעם אחת ולא משתנה לעולם. הוא הנתיב בענן, ולכן אם הוא היה משתנה -
   // אותו מכשיר היה מתפצל לשתי תיקיות. השם הקריא נשמר בנפרד ב-`_device.json`.
@@ -112,6 +139,7 @@ function mergeConfig(parsed: Partial<AppConfig> & { questions?: unknown }): AppC
   merged.genericQuestions = migrateQuestions(merged.genericQuestions);
   merged.customQuestions = migrateQuestions(merged.customQuestions);
   merged.hardcoreQuestions = migrateQuestions(merged.hardcoreQuestions ?? []);
+  merged.britQuestions = migrateQuestions(merged.britQuestions ?? []);
   // מוודאים שאין שדה ישן שנשאר
   delete (merged as { questions?: unknown }).questions;
   return merged;

@@ -370,7 +370,7 @@ export function questionCount(depth: Depth, cfg?: { depthSettings?: DepthSetting
  */
 const FREESTYLE_POOL = 40;
 
-function shuffle<T>(arr: T[]): T[] {
+export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -384,6 +384,8 @@ export interface SelectedQuestions {
   questions: string[];
   /** יתרת המאגר המתאים - מלאי ל"להחליף שאלה" במסך הצילום */
   spares: string[];
+  /** השאלה הראשונה קבועה (פתיחת מסלול הברית) ואסור להחליף אותה */
+  fixedFirst?: boolean;
 }
 
 /**

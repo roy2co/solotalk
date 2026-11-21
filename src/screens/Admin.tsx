@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import type {
   ActiveEvent,
   AppConfig,
+  DepthSettings,
   DisplayMode,
+  EventType,
   Question,
   RecordingInfo,
   StationOrientation,
@@ -10,14 +12,24 @@ import type {
   VideoStampPos,
 } from '../types';
 import {
+  BRIT_RELATIONSHIP_LABELS,
+  BRIT_RELATIONSHIPS,
+  DEFAULT_BRIT_DEPTH_SETTINGS,
   DEPTH_LABELS,
   DISPLAY_MODES,
+  EVENT_TYPE_OPTIONS,
   ORIENTATION_OPTIONS,
   VIDEO_FRAME_OPTIONS,
   VIDEO_STAMP_OPTIONS,
 } from '../types';
 import { saveConfig } from '../lib/config';
 import { DEFAULT_GENERIC } from '../lib/questions';
+import {
+  DEFAULT_BRIT,
+  DEFAULT_BRIT_BLESSING,
+  DEFAULT_BRIT_INTRO,
+} from '../lib/britQuestions';
+import { displayName, eventTypeOf, isBritType } from '../lib/eventType';
 import { downscaleImage } from '../lib/image';
 import { csvToQuestions, templateCsv } from '../lib/csv';
 import { recordingStore } from '../lib/storage';
@@ -350,6 +362,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
    * `drawVideoStamp`) ולא בחיקוי שלהן — חיקוי היה מתנתק מהמציאות בשינוי
    * הראשון, ואז המפעיל היה מאשר מסגרת אחת ומקבל אחרת. וזה נצרב לתמיד.
    */
+  const previewStampName = displayName(draft);
   useEffect(() => {
     if (nav !== 'welcome') return;
     const cv = framePreviewRef.current;
@@ -362,7 +375,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
       getComputedStyle(document.documentElement)
         .getPropertyValue('--ac')
         .trim() || '#C9A84C';
-    const stampName = (draft.activeEvent?.name || draft.eventName || '').trim();
+    const stampName = previewStampName;
     const stampDate = (draft.activeEvent?.date || draft.eventDate || '').trim();
 
     const paint = (photo?: HTMLImageElement) => {
@@ -413,7 +426,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
     draft.videoFrame,
     draft.videoStamp,
     draft.couplePhotoDataUrl,
-    draft.eventName,
+    previewStampName,
     draft.eventDate,
     draft.activeEvent,
     draft.theme,
@@ -616,7 +629,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
     const date = (draft.eventDate ?? '').trim();
     setConfirmStart(false);
     persistConfig(
-      { ...draft, activeEvent: startEvent(name, date) },
+      { ...draft, activeEvent: startEvent(name, date, draft.eventType ?? 'wedding') },
       `אירוע "${name}" התחיל 🎬`,
     );
   };
@@ -655,6 +668,8 @@ export default function Admin({ config, onSave, onExit }: Props) {
           : draft.pastEvents,
         eventName: '',
         eventDate: '',
+        // כמו התמונה למטה: שם התינוק של האירוע הקודם אסור שיופיע באירוע הבא
+        babyName: '',
         /**
          * ⚠️ **גם התמונה.**
          *
@@ -681,6 +696,8 @@ export default function Admin({ config, onSave, onExit }: Props) {
         pastEvents: (draft.pastEvents ?? []).filter((e) => e.id !== event.id),
         eventName: event.name,
         eventDate: event.date,
+        // אירוע שנפתח לפני שהיה סוג אירוע = חתונה
+        eventType: event.type ?? 'wedding',
       },
       `חזרת לאירוע "${event.name}" 🎬`,
     );
@@ -1012,6 +1029,20 @@ export default function Admin({ config, onSave, onExit }: Props) {
 
   // ספירות ומשך מיוחדים לאירוע הפעיל
   const activeEvent = draft.activeEvent;
+  // הסוג בפועל: האירוע הפעיל גובר על הבורר, בדיוק כמו אצל האורחים
+  const eventType = eventTypeOf(draft);
+  const brit = isBritType(eventType);
+  const eventTypeLabel =
+    EVENT_TYPE_OPTIONS.find((o) => o.value === eventType)?.label ?? '';
+  // כל מסלול שומר כמות שאלות משלו, כך שכוונון לברית לא משנה את החתונות
+  const depthKey = brit ? 'britDepthSettings' : 'depthSettings';
+  const depthDefaults = brit ? DEFAULT_BRIT_DEPTH_SETTINGS : DEFAULT_DEPTH_SETTINGS;
+  const depthNow = { ...depthDefaults, ...(draft[depthKey] ?? {}) };
+  const setDepth = (patch: Partial<DepthSettings>) =>
+    setDraft((d) => ({
+      ...d,
+      [depthKey]: { ...depthDefaults, ...(d[depthKey] ?? {}), ...patch },
+    }));
   const captureDiag = getCaptureDiagnostics();
   const recProgress = getRecordingProgress();
   // כל האירועים שהמכשיר מכיר: ההיסטוריה השמורה ממוזגת עם אירועים שנגזרים
@@ -1077,7 +1108,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
   }[] = [
     {
       done: !!draft.eventName.trim() && !!(draft.eventDate ?? '').trim(),
-      label: 'שמות הזוג ותאריך האירוע',
+      label: brit ? 'שם המשפחה ותאריך האירוע' : 'שמות הזוג ותאריך האירוע',
       hint: 'חובה — בלי זה לא ניתן לפתוח אירוע',
       blocking: true,
     },
@@ -1171,6 +1202,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
           <div className="event-banner">
             <div>
               <span className="live-dot" /> אירוע פעיל: <b>{activeEvent.name}</b>
+              <span className="meta"> · {eventTypeLabel}</span>
               <div className="meta">
                 {formatEventDate(activeEvent.date)} · התחיל{' '}
                 {new Date(activeEvent.startedAt).toLocaleTimeString('he-IL', {
@@ -1205,6 +1237,35 @@ export default function Admin({ config, onSave, onExit }: Props) {
             <button className="btn danger" onClick={() => setShowEndModal(true)}>
               ■ סיים אירוע
             </button>
+            {/*
+              שם התינוק/ת ניתן לעדכון **באמצע האירוע** — בברית הוא מוכרז רק
+              בטקס, כשהעמדה כבר פתוחה. נשמר מיד, בלי לגעת במזהה האירוע.
+            */}
+            {brit && (
+              <div className="field baby-name-field">
+                <label>{eventType === 'brita' ? 'שם התינוקת' : 'שם התינוק'} (אחרי ההכרזה)</label>
+                <div className="baby-name-row">
+                  <input
+                    value={draft.babyName ?? ''}
+                    placeholder="יופיע במסך הפתיחה ובחותמת הסרטון"
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, babyName: e.target.value }))
+                    }
+                  />
+                  <button
+                    className="mini-btn"
+                    onClick={() =>
+                      persistConfig(
+                        { ...draft, babyName: (draft.babyName ?? '').trim() },
+                        'השם עודכן ✓',
+                      )
+                    }
+                  >
+                    עדכן שם
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -1213,12 +1274,35 @@ export default function Admin({ config, onSave, onExit }: Props) {
               הפתיחה סגור לאורחים.
             </p>
             <div className="field">
-              <label>שמות החוגגים *</label>
+              <label>סוג האירוע</label>
+              <div className="orientation-picker">
+                {EVENT_TYPE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    className={`orient-btn ${
+                      (draft.eventType ?? 'wedding') === opt.value ? 'selected' : ''
+                    }`}
+                    onClick={() =>
+                      setDraft((d) => ({ ...d, eventType: opt.value as EventType }))
+                    }
+                  >
+                    <span className="orient-label">{opt.label}</span>
+                    <span className="orient-hint">{opt.hint}</span>
+                  </button>
+                ))}
+              </div>
+              <span className="step-hint">
+                קובע את מסך הפתיחה, את בחירת הקרבה ואת מאגר השאלות. ננעל
+                כשהאירוע מתחיל.
+              </span>
+            </div>
+            <div className="field">
+              <label>{brit ? 'שם המשפחה *' : 'שמות החוגגים *'}</label>
               <input
                 value={draft.eventName}
                 // שם אחר מברירת המחדל בכוונה: כשהשניים היו זהים, שדה מלא
                 // נראה בדיוק כמו שדה ריק.
-                placeholder="למשל: דנה & יוסי"
+                placeholder={brit ? 'למשל: משפחת כהן' : 'למשל: דנה & יוסי'}
                 onChange={(e) =>
                   setDraft((d) => ({ ...d, eventName: e.target.value }))
                 }
@@ -1253,6 +1337,23 @@ export default function Admin({ config, onSave, onExit }: Props) {
                 style={{ direction: 'ltr' }}
               />
             </div>
+            {brit && (
+              <div className="field">
+                <label>
+                  {eventType === 'brita' ? 'שם התינוקת' : 'שם התינוק'} (לא חובה)
+                </label>
+                <input
+                  value={draft.babyName ?? ''}
+                  placeholder="אפשר להשאיר ריק ולהוסיף אחרי ההכרזה בטקס"
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, babyName: e.target.value }))
+                  }
+                />
+                <span className="step-hint">
+                  עד שממלאים — מסך הפתיחה מציג את שם המשפחה.
+                </span>
+              </div>
+            )}
             <button
               className="btn"
               disabled={!draft.eventName.trim() || !(draft.eventDate ?? '').trim()}
@@ -1548,12 +1649,20 @@ export default function Admin({ config, onSave, onExit }: Props) {
       {/* ================== שאלות: כמות לכל עומק ================== */}
       {nav === 'questions' && (
       <div className="admin-section">
-        <h2>כמה שאלות בכל מסלול</h2>
-        <p className="step-hint" style={{ marginBottom: 14 }}>
-          באירוע הראשון חציון ההקלטות היה <b>44 שניות</b> ו-52% היו מתחת
-          ל-45 שניות — האורחים עצרו הרבה לפני 8 שאלות. אפשר לכוונן כאן בין
-          אירועים בלי גרסה חדשה.
-        </p>
+        <h2>כמה שאלות בכל מסלול{brit ? ` — ${eventTypeLabel}` : ''}</h2>
+        {brit ? (
+          <p className="step-hint" style={{ marginBottom: 14 }}>
+            כל אורח מתחיל ב«מי אתם בשבילי» ומסיים במסר האישי. ביניהם הוא מקבל
+            שאלות <b>לפי סדר המאגר</b> — עתיד, איחול, טיפ להורים, טיפ לחיים.
+            4 שאלות = אחת מכל נושא.
+          </p>
+        ) : (
+          <p className="step-hint" style={{ marginBottom: 14 }}>
+            באירוע הראשון חציון ההקלטות היה <b>44 שניות</b> ו-52% היו מתחת
+            ל-45 שניות — האורחים עצרו הרבה לפני 8 שאלות. אפשר לכוונן כאן בין
+            אירועים בלי גרסה חדשה.
+          </p>
+        )}
         <div className="depth-settings">
           <div className="field">
             <label>«כמה שאלות» — מספר השאלות</label>
@@ -1561,19 +1670,18 @@ export default function Admin({ config, onSave, onExit }: Props) {
               type="number"
               min={1}
               max={20}
-              value={draft.depthSettings?.fewCount ?? DEFAULT_DEPTH_SETTINGS.fewCount}
+              value={depthNow.fewCount}
               onChange={(e) =>
-                setDraft((d) => ({
-                  ...d,
-                  depthSettings: {
-                    ...DEFAULT_DEPTH_SETTINGS,
-                    ...(d.depthSettings ?? {}),
-                    fewCount: Math.max(1, Math.min(20, Number(e.target.value) || 1)),
-                  },
-                }))
+                setDepth({
+                  fewCount: Math.max(1, Math.min(20, Number(e.target.value) || 1)),
+                })
               }
             />
-            <span className="step-hint">הברכה הסוגרת נוספת מעל המספר הזה</span>
+            <span className="step-hint">
+              {brit
+                ? 'הפתיחה והמסר הסוגר נוספים מעל המספר הזה'
+                : 'הברכה הסוגרת נוספת מעל המספר הזה'}
+            </span>
           </div>
           <div className="field">
             <label>«פריסטייל» — תקרת דקות</label>
@@ -1581,26 +1689,82 @@ export default function Admin({ config, onSave, onExit }: Props) {
               type="number"
               min={1}
               max={5}
-              value={
-                draft.depthSettings?.freestyleMinutes ??
-                DEFAULT_DEPTH_SETTINGS.freestyleMinutes
-              }
+              value={depthNow.freestyleMinutes}
               onChange={(e) =>
-                setDraft((d) => ({
-                  ...d,
-                  depthSettings: {
-                    ...DEFAULT_DEPTH_SETTINGS,
-                    ...(d.depthSettings ?? {}),
-                    freestyleMinutes: Math.max(1, Math.min(5, Number(e.target.value) || 1)),
-                  },
-                }))
+                setDepth({
+                  freestyleMinutes: Math.max(1, Math.min(5, Number(e.target.value) || 1)),
+                })
               }
             />
             <span className="step-hint">
-              שם אין מכסת שאלות — הזמן הוא המגבלה. מקסימום 5 דקות.
+              {brit
+                ? 'בפריסטייל מוצגות עד 8 שאלות (שתיים מכל נושא). מקסימום 5 דקות.'
+                : 'שם אין מכסת שאלות — הזמן הוא המגבלה. מקסימום 5 דקות.'}
             </span>
           </div>
         </div>
+      </div>
+      )}
+
+      {/* ================== שאלות: מסלול ברית/בריתה ================== */}
+      {nav === 'questions' && brit && (
+      <div className="admin-section">
+        <h2>שאלות — {eventTypeLabel}</h2>
+        <p className="step-hint" style={{ marginBottom: 20 }}>
+          השאלות כתובות <b>בקול של {eventType === 'brita' ? 'התינוקת' : 'התינוק'}</b>,
+          ופונות לאורחים ברבים. כדי ששאלה תתאים גם לברית וגם לבריתה כותבים{' '}
+          <span dir="ltr">{'{בן|בת}'}</span> — החלק הראשון מוצג בברית והשני
+          בבריתה.
+        </p>
+
+        <div className="field">
+          <label>השאלה הפותחת — תמיד ראשונה</label>
+          <input
+            value={draft.britIntroPrompt ?? ''}
+            placeholder={DEFAULT_BRIT_INTRO}
+            onChange={(e) =>
+              setDraft((d) => ({ ...d, britIntroPrompt: e.target.value }))
+            }
+          />
+          <p className="step-hint">
+            אי אפשר להחליף אותה בזמן הצילום: מי שיצפה בסרטון בעוד שנים צריך
+            לדעת מי מדבר אליו.
+          </p>
+        </div>
+
+        <div className="field">
+          <label>המסר הסוגר — תמיד אחרון</label>
+          <input
+            value={draft.britBlessingPrompt ?? ''}
+            placeholder={DEFAULT_BRIT_BLESSING}
+            onChange={(e) =>
+              setDraft((d) => ({ ...d, britBlessingPrompt: e.target.value }))
+            }
+          />
+          <p className="step-hint">
+            במסלול «רק לברך» האורח מקבל רק את הפתיחה ואת המסר הזה.
+          </p>
+        </div>
+
+        <div className="admin-toolbar" style={{ margin: '20px 0 4px' }}>
+          <button
+            className="mini-btn outline"
+            onClick={() => setDraft((d) => ({ ...d, britQuestions: DEFAULT_BRIT }))}
+          >
+            ↺ שחזר מאגר ברירת מחדל
+          </button>
+        </div>
+        <p className="step-hint" style={{ marginBottom: 8 }}>
+          <b>סדר השורות הוא סדר ההופעה בסרטון.</b> שאלה חדשה נוספת לסוף,
+          כלומר לנושא האחרון.
+        </p>
+        <QuestionEditor
+          value={draft.britQuestions ?? []}
+          onChange={(britQuestions) => setDraft((d) => ({ ...d, britQuestions }))}
+          skipStats={draft.skipStats}
+          relationships={BRIT_RELATIONSHIPS}
+          labels={BRIT_RELATIONSHIP_LABELS}
+        />
       </div>
       )}
 
@@ -1796,7 +1960,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
 
         <div className="upload-grid">
           <div className="field">
-            <label>תמונת הזוג (מוצגת במרכז)</label>
+            <label>{brit ? 'תמונת התינוק/ת' : 'תמונת הזוג'} (מוצגת במרכז)</label>
             {draft.couplePhotoDataUrl && (
               <img
                 src={draft.couplePhotoDataUrl}
@@ -1918,8 +2082,8 @@ export default function Admin({ config, onSave, onExit }: Props) {
       </div>
       )}
 
-      {/* ================== שאלות ================== */}
-      {nav === 'questions' && (
+      {/* ================== שאלות (חתונה) ================== */}
+      {nav === 'questions' && !brit && (
       <div className="admin-section">
         <h2>שאלות</h2>
         <p className="step-hint" style={{ marginBottom: 20 }}>

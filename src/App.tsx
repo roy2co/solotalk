@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { AppConfig, Depth, Relationship, Screen } from './types';
 import {
+  BRIT_RELATIONSHIP_LABELS,
+  BRIT_RELATIONSHIPS,
   FAMILY_PARENT_CATEGORY,
   FAMILY_SUBCATEGORIES,
   FRIENDS_PARENT_CATEGORY,
   FRIENDS_SUBCATEGORIES,
 } from './types';
+import { copyFor, eventTypeOf, isBritType } from './lib/eventType';
+import { selectBritQuestions } from './lib/britQuestions';
 import { loadConfig, saveConfig } from './lib/config';
 import { selectQuestions } from './lib/questions';
 import { startUploaderAutoResume } from './lib/uploader';
@@ -32,6 +36,8 @@ export interface Session {
   questions: string[];
   /** מלאי שאלות חלופיות לכפתור "להחליף שאלה" במסך הצילום */
   spares: string[];
+  /** השאלה הראשונה נעולה להחלפה (פתיחת מסלול הברית) */
+  fixedFirst?: boolean;
 }
 
 const EMPTY_SESSION: Session = {
@@ -183,14 +189,23 @@ export default function App() {
     setScreen('depth');
   };
 
+  /** מסלול ברית: מסך קרבה אחד, ומשם ישר לעומק — בלי תת-מסכים */
+  const chooseBritRelationship = (relationship: Relationship[]) => {
+    setSession((s) => ({ ...s, relationship }));
+    setScreen('depth');
+  };
+
   const chooseDepth = (depth: Depth) => {
     if (!config) return;
-    const { questions, spares } = selectQuestions(
+    const select = isBritType(eventTypeOf(config))
+      ? selectBritQuestions
+      : selectQuestions;
+    const { questions, spares, fixedFirst } = select(
       config,
       session.relationship,
       depth,
     );
-    setSession((s) => ({ ...s, depth, questions, spares }));
+    setSession((s) => ({ ...s, depth, questions, spares, fixedFirst }));
     setScreen('countdown');
   };
 
@@ -198,6 +213,9 @@ export default function App() {
   if (!config) {
     return <div className="screen splash" />;
   }
+
+  const brit = isBritType(eventTypeOf(config));
+  const copy = copyFor(eventTypeOf(config));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', position: 'relative' }}>
@@ -288,8 +306,19 @@ export default function App() {
         ) : (
           <ClosedScreen config={config} />
         ))}
-      {screen === 'relationship' && (
+      {screen === 'relationship' && !brit && (
         <RelationshipScreen onNext={chooseRelationship} onBack={reset} />
+      )}
+      {screen === 'relationship' && brit && (
+        <SubCategoryScreen
+          title={copy.relationshipTitle}
+          subtitle={copy.relationshipSubtitle}
+          options={BRIT_RELATIONSHIPS}
+          labels={BRIT_RELATIONSHIP_LABELS}
+          withOther={false}
+          onNext={chooseBritRelationship}
+          onBack={reset}
+        />
       )}
       {screen === 'friendsSub' && (
         <SubCategoryScreen
@@ -319,11 +348,14 @@ export default function App() {
           onNext={chooseDepth}
           onBack={() =>
             setScreen(
-              session.relationship.includes(FAMILY_PARENT_CATEGORY)
-                ? 'familySub'
-                : session.relationship.includes(FRIENDS_PARENT_CATEGORY)
-                  ? 'friendsSub'
-                  : 'relationship',
+              // במסלול ברית אין תת-מסכים, גם כשהקרבה שנבחרה היא «משפחה»
+              brit
+                ? 'relationship'
+                : session.relationship.includes(FAMILY_PARENT_CATEGORY)
+                  ? 'familySub'
+                  : session.relationship.includes(FRIENDS_PARENT_CATEGORY)
+                    ? 'friendsSub'
+                    : 'relationship',
             )
           }
         />
@@ -351,7 +383,11 @@ export default function App() {
         />
       )}
       {screen === 'thankyou' && (
-        <ThankYou autoResetSeconds={config.autoResetSeconds} onReset={reset} />
+        <ThankYou
+          message={copy.thankYou}
+          autoResetSeconds={config.autoResetSeconds}
+          onReset={reset}
+        />
       )}
       {screen === 'pin' && (
         <PinScreen

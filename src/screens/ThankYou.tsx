@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 
 interface Props {
+  /** משתנה לפי סוג האירוע — ראו `copyFor` */
+  message: string;
   autoResetSeconds: number;
   onReset: () => void;
 }
 
-export default function ThankYou({ autoResetSeconds, onReset }: Props) {
+export default function ThankYou({ message, autoResetSeconds, onReset }: Props) {
   const [left, setLeft] = useState(autoResetSeconds);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export default function ThankYou({ autoResetSeconds, onReset }: Props) {
     <div className="screen">
       <div style={{ fontSize: '72px' }}>💛</div>
       <h1>תודה רבה!</h1>
-      <p className="subtitle">הברכה שלכם נשמרה. איזה כיף שהייתם חלק מהיום הזה.</p>
+      <p className="subtitle">{message}</p>
       <button className="btn" onClick={onReset}>
         סיום ({left})
       </button>

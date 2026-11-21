@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { AppConfig, SessionMeta } from '../types';
-import { DEFAULT_DEPTH_SETTINGS } from '../types';
+import { copyFor, depthSettingsOf, displayName, eventTypeOf } from '../lib/eventType';
 import type { Session } from '../App';
 import {
   QuestionRecorder,
@@ -63,10 +63,7 @@ export default function Recording({
     session.depth === 'many'
       ? Math.min(
           HARD_MAX_MS,
-          Math.round(
-            (config.depthSettings?.freestyleMinutes ??
-              DEFAULT_DEPTH_SETTINGS.freestyleMinutes) * 60 * 1000,
-          ),
+          Math.round(depthSettingsOf(config).freestyleMinutes * 60 * 1000),
         )
       : HARD_MAX_MS;
 
@@ -126,7 +123,10 @@ export default function Recording({
   // השאלה האחרונה היא תמיד הברכה — ואסור להחליף אותה.
   // בלי התנאי הזה כפתור «להחליף שאלה» היה מוצג גם על הברכה,
   // ולחיצה עליו הייתה מוחקת אותה מההקלטה לגמרי.
-  const canSwap = spares.length > 0 && !isLast;
+  // במסלול ברית גם הראשונה נעולה: «מי אתם בשבילי» היא מה שהופך את
+  // הסרטון למובן בעוד שנים, ולכן אסור שתוחלף בשאלה אחרת.
+  const isFixedFirst = !!session.fixedFirst && qIndex === 0;
+  const canSwap = spares.length > 0 && !isLast && !isFixedFirst;
 
   /**
    * פותח את המצלמה ומתחיל להקליט. מופרד מה-effect כדי ש«נסה שוב» יוכל
@@ -145,7 +145,7 @@ export default function Recording({
     recorder.setVideoStyle({
       frame: config.videoFrame ?? 'none',
       stamp: config.videoStamp ?? 'off',
-      stampName: (config.activeEvent?.name || config.eventName || '').trim(),
+      stampName: displayName(config),
       stampDate: (config.activeEvent?.date || config.eventDate || '').trim(),
       accent:
         getComputedStyle(document.documentElement)
@@ -259,7 +259,7 @@ export default function Recording({
     if (spares.length === 0) return;
     // הגנה כפולה על הברכה: גם אם הכפתור ייחשף בעתיד בטעות, הלוגיקה
     // עצמה מסרבת להחליף את השאלה האחרונה.
-    if (isLast) return;
+    if (isLast || isFixedFirst) return;
     const [replacement, ...rest] = spares;
     const removed = questions[qIndex];
     setQuestions((prev) => {
@@ -317,6 +317,7 @@ export default function Recording({
       const meta: SessionMeta = {
         eventName: config.activeEvent?.name || config.eventName,
         eventId: config.activeEvent?.id,
+        eventType: eventTypeOf(config),
         relationship: session.relationship,
         depth: session.depth!,
         timestamp: Date.now(),
@@ -345,6 +346,7 @@ export default function Recording({
             meta: {
               eventName: config.activeEvent?.name || config.eventName,
               eventId: config.activeEvent?.id,
+              eventType: eventTypeOf(config),
               relationship: session.relationship,
               depth: session.depth!,
               timestamp: Date.now(),
@@ -534,7 +536,7 @@ export default function Recording({
       {/* מסך הברכה מסומן במפורש — כך אין ספק שזו הסגירה ולא שאלה שנדדה */}
       {isLast && questions.length > 1 && (
         <div className="rec-closing" role="status">
-          🎁 לסיום — הברכה שלכם
+          {copyFor(eventTypeOf(config)).closingLabel}
         </div>
       )}
 

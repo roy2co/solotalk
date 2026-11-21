@@ -1,5 +1,22 @@
 // טיפוסים משותפים לכל האפליקציה
 
+/**
+ * ---- סוג האירוע ----
+ *
+ * `wedding` הוא המצב המקורי. `brit` / `brita` חולקים את אותו מסלול
+ * («קפסולת זמן» — האורחים מדברים **אל התינוק/ת**, שיצפו בזה כשיגדלו),
+ * וההבדל ביניהם הוא רק לשון הפנייה בשאלות. ראו `lib/eventType.ts`.
+ *
+ * קונפיג או אירוע בלי השדה = `wedding`, כך שכל מה שנשמר לפני התוספת
+ * ממשיך להתנהג בדיוק כמו קודם.
+ */
+export const EVENT_TYPE_OPTIONS = [
+  { value: 'wedding', label: '💍 חתונה', hint: 'ברכות ושאלות על הזוג' },
+  { value: 'brit', label: '👶 ברית', hint: 'מסרים לעתיד — לבן' },
+  { value: 'brita', label: '🎀 בריתה', hint: 'מסרים לעתיד — לבת' },
+] as const;
+export type EventType = (typeof EVENT_TYPE_OPTIONS)[number]['value'];
+
 /** ערכות צבע פרימיום בסגנון Liquid Glass */
 export const THEME_OPTIONS = ['gold', 'rose', 'champagne', 'emerald', 'sapphire', 'ruby'] as const;
 export type ThemeName = (typeof THEME_OPTIONS)[number];
@@ -99,6 +116,29 @@ export const FAMILY_PARENT_CATEGORY = 'משפחה';
  */
 export const SUB_OTHER = 'אחר';
 
+/**
+ * הקרבות במסלול ברית/בריתה — **מסך אחד**, בלי תת-מסכים.
+ *
+ * בכוונה ערכי `Relationship` **קיימים** ולא חדשים: שמות הקבצים, ה-slug
+ * בענן וכלי בניית הסרט כבר מכירים אותם, ולכן המסלול החדש לא דורש שום
+ * שינוי בהם. מה שמשתנה הוא רק התווית שהאורח רואה (`BRIT_RELATIONSHIP_LABELS`).
+ */
+export const BRIT_RELATIONSHIPS = [
+  'סבא וסבתא',
+  'דודים ובני דודים',
+  'אחים ואחיות',
+  'חברים',
+  'משפחה',
+  'אחר',
+] as const satisfies readonly Relationship[];
+
+/** התווית שמוצגת לאורח במסלול ברית. קרבה שלא מופיעה כאן מוצגת בשמה. */
+export const BRIT_RELATIONSHIP_LABELS: Record<string, string> = {
+  'דודים ובני דודים': 'דודים ודודות',
+  'חברים': 'חברים של ההורים',
+  'משפחה': 'משפחה',
+};
+
 export const ALL_RELATIONSHIPS = [
   ...RELATIONSHIP_OPTIONS,
   ...FRIENDS_SUBCATEGORIES,
@@ -179,6 +219,15 @@ export const DEFAULT_DEPTH_SETTINGS: DepthSettings = {
   freestyleMinutes: 4,
 };
 
+/**
+ * ברית קצרה מחתונה והאורחים ממהרים יותר, ולכן פחות שאלות. 4 = אחת מכל
+ * נושא במאגר (עתיד · איחול · טיפ להורים · טיפ לחיים), בנוסף לפתיחה ולסיום.
+ */
+export const DEFAULT_BRIT_DEPTH_SETTINGS: DepthSettings = {
+  fewCount: 4,
+  freestyleMinutes: 4,
+};
+
 /** שאלה בודדת — מתויגת לפי סוגי הקרבה שהיא מתאימה להם */
 export interface Question {
   id: string;
@@ -205,10 +254,30 @@ export interface ActiveEvent {
   name: string; // שמות החוגגים
   date: string; // תאריך האירוע (טקסט חופשי לתצוגה)
   startedAt: number; // חותמת זמן ההתחלה
+  /** ננעל בפתיחת האירוע, כדי שחזרה לאירוע ישן תשחזר גם את המסלול שלו */
+  type?: EventType;
 }
 
 /** הגדרות האירוע — נשמרות ב-localStorage, נערכות בדשבורד הניהול */
 export interface AppConfig {
+  /** סוג האירוע שייפתח ב«התחל אירוע חדש». ברירת מחדל `wedding`. */
+  eventType?: EventType;
+  /**
+   * שם התינוק/ת — **אופציונלי ונפרד משם האירוע**. בברית השם מוכרז רק
+   * בטקס, והעמדה כבר פתוחה לפניו; לכן האירוע נפתח על שם המשפחה (שהוא גם
+   * תיקיית הענן, ואסור שישתנה), והשם מתווסף כאן אחרי ההכרזה.
+   */
+  babyName?: string;
+  /** מאגר השאלות של מסלול ברית/בריתה. נפרד לגמרי ממאגרי החתונה. */
+  britQuestions?: Question[];
+  /** ראו `questionBankVersion` — אותו מנגנון, למאגר הברית */
+  britBankVersion?: number;
+  /** השאלה הפותחת במסלול ברית: «מי אתם בשבילי» — תמיד ראשונה */
+  britIntroPrompt?: string;
+  /** השאלה הסוגרת במסלול ברית — המקבילה ל-`blessingPrompt` */
+  britBlessingPrompt?: string;
+  /** כמות שאלות ותקרת זמן במסלול ברית. ראו `DEFAULT_BRIT_DEPTH_SETTINGS`. */
+  britDepthSettings?: DepthSettings;
   /** כמות שאלות ותקרת זמן לכל עומק. ראו `DEFAULT_DEPTH_SETTINGS`. */
   depthSettings?: DepthSettings;
   eventName: string;
@@ -284,6 +353,8 @@ export interface AppConfig {
 export interface SessionMeta {
   eventName: string;
   eventId?: string;
+  /** חסר בהקלטות ישנות = חתונה */
+  eventType?: EventType;
   relationship: Relationship[];
   depth: Depth;
   timestamp: number;

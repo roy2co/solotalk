@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import type { AppConfig, ThemeName } from '../types';
 import { THEME_OPTIONS } from '../types';
 import { formatEventDate } from '../lib/event';
+import { DEFAULT_CONFIG } from '../lib/config';
+import { copyFor, displayName, eventTypeOf, genderize, isBritType } from '../lib/eventType';
 import defaultLogo from '../assets/logo.png';
 
 interface Props {
@@ -22,8 +24,14 @@ const BUBBLE_SPOTS = [
 
 function sampleQuestions(config: AppConfig): string[] {
   try {
-    const pool = [...config.genericQuestions, ...config.customQuestions]
-      .map((q) => q.text.trim())
+    // הבועות הן טעימה ממה שהאורח יישאל, ולכן הן חייבות לבוא מהמאגר של
+    // המסלול הפעיל — שאלות על «החתן והכלה» בברית היו פשוט טעות.
+    const type = eventTypeOf(config);
+    const source = isBritType(type)
+      ? (config.britQuestions ?? [])
+      : [...config.genericQuestions, ...config.customQuestions];
+    const pool = source
+      .map((q) => genderize(q.text.trim(), type))
       .filter((t) => t && t.length < 45);
     const seen = new Set<string>();
     const unique = pool.filter((t) => (seen.has(t) ? false : seen.add(t)));
@@ -39,7 +47,8 @@ export default function Welcome({ config, onStart, onThemeChange }: Props) {
 
   const bubbles = useMemo(() => sampleQuestions(config), [config]);
 
-  const eventName = config.activeEvent?.name || config.eventName;
+  const eventName = displayName(config);
+  const copy = copyFor(eventTypeOf(config));
   const eventDate = config.activeEvent?.date || config.eventDate;
 
   const activeTheme = config.theme || 'gold';
@@ -126,8 +135,8 @@ export default function Welcome({ config, onStart, onThemeChange }: Props) {
               />
             ) : (
               <div className="photo-placeholder">
-                <span className="glyph">🥂</span>
-                <span className="cap">התמונה שלכם כאן</span>
+                <span className="glyph">{copy.photoGlyph}</span>
+                <span className="cap">{copy.photoCaption}</span>
               </div>
             )}
           </div>
@@ -138,10 +147,14 @@ export default function Welcome({ config, onStart, onThemeChange }: Props) {
           * זו ההוראה היחידה שהאורח צריך כאן; כל השאר מחכה למסך הבא.
           * הטקסט החופשי מהדשבורד יורד לשורה משנית מתחתיה.
           */}
-        <p className="welcome-invite">השאירו ברכה מצולמת</p>
-        {config.welcomeText?.trim() && (
-          <p className="subtitle welcome-sub">{config.welcomeText}</p>
-        )}
+        <p className="welcome-invite">{copy.invite}</p>
+        {/* ברירת המחדל כתובה בקול של זוג («השאירו לנו ברכה»), ובמסלול ברית
+            היא סותרת את ההזמנה שמעליה. טקסט שהמפעיל כתב בעצמו — מוצג תמיד. */}
+        {config.welcomeText?.trim() &&
+          !(isBritType(eventTypeOf(config)) &&
+            config.welcomeText === DEFAULT_CONFIG.welcomeText) && (
+            <p className="subtitle welcome-sub">{config.welcomeText}</p>
+          )}
 
         <div className="cta-zone">
           <div className="cta-halo" aria-hidden />

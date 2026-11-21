@@ -1,4 +1,4 @@
-import type { ActiveEvent, RecordingInfo } from '../types';
+import type { ActiveEvent, EventType, RecordingInfo } from '../types';
 
 /** כמה אירועים שהסתיימו נשמרים להיסטוריה */
 const MAX_PAST_EVENTS = 30;
@@ -41,13 +41,18 @@ export function makeEventId(name: string, startedAt: number, date?: string): str
 }
 
 /** יוצר אירוע פעיל חדש */
-export function startEvent(name: string, date: string): ActiveEvent {
+export function startEvent(
+  name: string,
+  date: string,
+  type: EventType = 'wedding',
+): ActiveEvent {
   const startedAt = Date.now();
   return {
     id: makeEventId(name, startedAt, date),
     name: name.trim(),
     date: date.trim(),
     startedAt,
+    type,
   };
 }
 
