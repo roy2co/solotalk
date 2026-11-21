@@ -82,6 +82,16 @@ export default function Recording({
   const [saveError, setSaveError] = useState(false);
   /** עוצמת המיקרופון 0..1 — לתצוגה בלבד, לעולם לא על הקנבס */
   const [micLevel, setMicLevel] = useState(0);
+  /**
+   * המיקרופון לא משדר כלום. `ref` לצד ה-state כי `finish` קורא את הערך
+   * אחרי כמה `await`, ושם ה-state של הרינדור שבו הוא נוצר כבר ישן.
+   */
+  const [micDead, setMicDead] = useState(false);
+  const micDeadRef = useRef(false);
+  const onMicSilence = (silent: boolean) => {
+    micDeadRef.current = silent;
+    setMicDead(silent);
+  };
   /** מזהה שמאלץ הרכבה מחדש של ההקלטה כשלוחצים «התחל מחדש» */
   const [takeId, setTakeId] = useState(0);
   const [showHint, setShowHint] = useState(true);
@@ -167,7 +177,9 @@ export default function Recording({
       const stream = recorder.getStream?.();
       if (stream) {
         stopMeterRef.current?.();
-        stopMeterRef.current = startMicMeter(stream, setMicLevel);
+        stopMeterRef.current = startMicMeter(stream, setMicLevel, {
+          onSilence: onMicSilence,
+        });
       }
     } catch (e) {
       console.error('camera failed', e);
@@ -241,6 +253,7 @@ export default function Recording({
     setRecStartedAt(null);
     setElapsedMs(0);
     setMicLevel(0);
+    onMicSilence(false);
     setSaveError(false);
     setTakeId((n) => n + 1);
   };
@@ -318,6 +331,7 @@ export default function Recording({
         eventName: config.activeEvent?.name || config.eventName,
         eventId: config.activeEvent?.id,
         eventType: eventTypeOf(config),
+        ...(micDeadRef.current ? { micSilent: true } : {}),
         relationship: session.relationship,
         depth: session.depth!,
         timestamp: Date.now(),
@@ -347,6 +361,7 @@ export default function Recording({
               eventName: config.activeEvent?.name || config.eventName,
               eventId: config.activeEvent?.id,
               eventType: eventTypeOf(config),
+              ...(micDeadRef.current ? { micSilent: true } : {}),
               relationship: session.relationship,
               depth: session.depth!,
               timestamp: Date.now(),
@@ -531,7 +546,21 @@ export default function Recording({
         </button>
       </div>
 
-      {showHint && !isLast && <div className="look-hint">👆 הביטו למצלמה</div>}
+      {showHint && !isLast && !micDead && (
+        <div className="look-hint">👆 הביטו למצלמה</div>
+      )}
+
+      {/*
+        המיקרופון לא משדר. **HTML ולא קנבס** — לא נצרב לסרטון.
+        האורח לא יכול לתקן את זה, ולכן ההודעה שולחת אותו למפעיל במקום
+        להמשיך לצלם סרטון אילם.
+      */}
+      {micDead && (
+        <div className="rec-mic-dead" role="alert">
+          <b>🎤 לא שומעים אתכם</b>
+          <span>המיקרופון לא קולט קול — קראו למפעיל העמדה</span>
+        </div>
+      )}
 
       {/* מסך הברכה מסומן במפורש — כך אין ספק שזו הסגירה ולא שאלה שנדדה */}
       {isLast && questions.length > 1 && (

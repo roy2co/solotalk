@@ -1522,6 +1522,35 @@ h2 {
   opacity: 0.75;
 }
 
+/* מיקרופון מת — במרכז המסך, אדום, ולא נעלם עד שהקול חוזר.
+   זו התקלה היחידה שהופכת את הסרטון לחסר ערך, ולכן היא לא עדינה. */
+.rec-mic-dead {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 86%;
+  padding: 18px 30px;
+  border-radius: 22px;
+  background: rgba(150, 24, 24, 0.92);
+  border: 2px solid #ff8f8f;
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+}
+.rec-mic-dead b {
+  font-size: clamp(24px, 3.6vw, 36px);
+}
+.rec-mic-dead span {
+  font-size: clamp(16px, 2.2vw, 22px);
+  font-weight: 500;
+}
+
 /* רמז "הביטו למצלמה" — למעלה, מפנה את המבט כלפי העדשה */
 .look-hint {
   position: absolute;
@@ -2457,6 +2486,10 @@ a.mini-btn {
   color: #8fe0ac;
 }
 
+.camera-warn {
+  color: #ffb84d;
+  font-weight: 600;
+}
 .camera-fail {
   font-weight: 600;
   color: #ffb3bf;

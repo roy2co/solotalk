@@ -7,6 +7,7 @@
 // בשקט במקום שלנו. אין לשנות את השמות בחזרה.
 import type { VideoFrameStyle, VideoStampPos } from '../types';
 import { acquireCamera, hasLiveCamera } from './camera';
+import { listenForSignal, type MicSignal } from './micLevel';
 
 const PREFERRED_MIME_TYPES = [
   'video/mp4;codecs=avc1',
@@ -977,6 +978,40 @@ export async function checkCameraAccess(): Promise<CameraErrorInfo | null> {
     return null;
   } catch (err) {
     return describeCameraError(err);
+  }
+}
+
+/**
+ * בדיקת המפעיל: כמו `checkCameraAccess`, אבל גם **מאזינה** למיקרופון.
+ *
+ * למה נפרד: `getUserMedia` מצליח גם כשהמיקרופון לא משדר כלום (התקן לא
+ * מחובר, התקן וירטואלי, מיקרופון מושתק). הבדיקה הישנה אישרה «המצלמה
+ * והמיקרופון עובדים» על סמך ההרשאה בלבד, ונמדד בפועל סרטון של דקה עם
+ * ערוץ שמע דומם לחלוטין אחרי בדיקה ש«עברה».
+ *
+ * `ctx` נוצר ע"י הקורא **בתוך הלחיצה**, לפני ה-await הראשון — אחרת iOS
+ * משהה אותו והמדידה חסרת ערך.
+ */
+export async function checkCameraAndMic(
+  ctx: AudioContext | null,
+  listenMs = 2500,
+): Promise<{ problem: CameraErrorInfo | null; mic: MicSignal }> {
+  // אורח מצלם ברגע זה — לא פותחים זרם שני ולא מפריעים לו
+  if (hasLiveCamera()) return { problem: null, mic: 'unknown' };
+
+  let stream: MediaStream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user' },
+      audio: true,
+    });
+  } catch (err) {
+    return { problem: describeCameraError(err), mic: 'unknown' };
+  }
+  try {
+    return { problem: null, mic: await listenForSignal(stream, ctx, listenMs) };
+  } finally {
+    stream.getTracks().forEach((t) => t.stop());
   }
 }
 

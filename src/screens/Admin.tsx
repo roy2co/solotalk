@@ -57,11 +57,12 @@ import {
 import {
   getCaptureDiagnostics,
   getRecordingProgress,
-  checkCameraAccess,
+  checkCameraAndMic,
   drawVideoFrame,
   drawVideoStamp,
   type CameraErrorInfo,
 } from '../lib/recorder';
+import { createAudioContext } from '../lib/micLevel';
 import QuestionEditor from '../components/QuestionEditor';
 import PinScreen from './PinScreen';
 
@@ -260,7 +261,10 @@ export default function Admin({ config, onSave, onExit }: Props) {
   const [cameraCheck, setCameraCheck] = useState<
     | { state: 'idle' }
     | { state: 'checking' }
-    | { state: 'ok' }
+    // `heard` = נקלט קול בפועל · `unknown` = לא ניתן היה למדוד במכשיר הזה
+    | { state: 'ok'; mic: 'heard' | 'unknown' }
+    // המצלמה נפתחה, אבל המיקרופון לא שידר כלום
+    | { state: 'silent' }
     | { state: 'fail'; info: CameraErrorInfo }
   >({ state: 'idle' });
   // ---- ארכיון המנהל (ענן) ----
@@ -739,12 +743,17 @@ export default function Admin({ config, onSave, onExit }: Props) {
    * אחת, וכל האורחים אחריה לא יראו אותה בכלל.
    */
   const runCameraCheck = async () => {
+    // נוצר **לפני** ה-await: מחוץ ללחיצה iOS משהה אותו והמדידה ריקה
+    const ctx = createAudioContext();
     setCameraCheck({ state: 'checking' });
-    const problem = await checkCameraAccess();
+    const { problem, mic } = await checkCameraAndMic(ctx);
+    void ctx?.close().catch(() => undefined);
     setCameraCheck(
       problem
         ? { state: 'fail', info: problem }
-        : { state: 'ok' },
+        : mic === 'silent'
+          ? { state: 'silent' }
+          : { state: 'ok', mic },
     );
   };
 
@@ -1059,6 +1068,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
     ? recordings.filter((r) => r.meta.eventId === activeEvent.id)
     : [];
   const eventTotal = eventRecs.length;
+  const eventSilent = eventRecs.filter((r) => r.meta.micSilent).length;
   const eventUploaded = eventRecs.filter(
     (r) => r.uploadStatus === 'uploaded',
   ).length;
@@ -1406,7 +1416,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
 
       {/* ---- בדיקת מצלמה לפני האירוע ---- */}
       <div className="admin-section camera-check">
-        <h2>בדיקת מצלמה</h2>
+        <h2>בדיקת מצלמה ומיקרופון</h2>
         <p className="step-hint" style={{ marginBottom: 12 }}>
           להריץ פעם אחת בתחילת הערב. חלונית ההרשאה של iOS תקפוץ כאן — וכל
           האורחים אחריה לא יראו אותה. <b>אין אישור קבוע לדף אינטרנט</b>,
@@ -1418,15 +1428,42 @@ export default function Admin({ config, onSave, onExit }: Props) {
             onClick={runCameraCheck}
             disabled={cameraCheck.state === 'checking'}
           >
-            {cameraCheck.state === 'checking' ? 'בודק…' : '🎥 בדוק מצלמה'}
+            {cameraCheck.state === 'checking'
+              ? 'בודק… דברו עכשיו'
+              : '🎥 בדוק מצלמה ומיקרופון'}
           </button>
           {cameraCheck.state === 'ok' && (
-            <span className="camera-ok">✓ המצלמה והמיקרופון עובדים</span>
+            <span className="camera-ok">
+              {cameraCheck.mic === 'heard'
+                ? '✓ המצלמה עובדת, והמיקרופון קולט קול'
+                : '✓ המצלמה והמיקרופון נגישים'}
+            </span>
+          )}
+          {cameraCheck.state === 'silent' && (
+            <span className="camera-warn">
+              ⚠️ המצלמה עובדת, אבל המיקרופון לא קולט שום קול
+            </span>
           )}
           {cameraCheck.state === 'fail' && (
             <span className="camera-fail">✗ {cameraCheck.info.message}</span>
           )}
         </div>
+        {cameraCheck.state === 'silent' && (
+          <FixHint
+            steps={[
+              'מיקרופון חיצוני? ודאו שהוא מחובר עד הסוף, דלוק, ולא על השתק',
+              'נתקו וחברו אותו מחדש, ואז לחצו שוב «בדוק מצלמה ומיקרופון»',
+              'בלי מיקרופון חיצוני: סגרו את האפליקציה לגמרי ופתחו מחדש',
+              'לפני שפותחים אירוע — הקליטו ברכת בדיקה והאזינו לה',
+            ]}
+          />
+        )}
+        {cameraCheck.state === 'ok' && cameraCheck.mic === 'unknown' && (
+          <p className="step-hint">
+            לא ניתן היה למדוד קול במכשיר הזה. הקליטו ברכת בדיקה והאזינו לה
+            לפני האירוע.
+          </p>
+        )}
         {cameraCheck.state === 'fail' && cameraCheck.info.isPermission && (
           <p className="step-hint camera-settings-hint">
             אם החלונית לא קופצת — הגדרות → ספארי → מצלמה ומיקרופון → «אפשר»
@@ -1454,6 +1491,20 @@ export default function Admin({ config, onSave, onExit }: Props) {
           ואם הטאב נופל אין דרך לדעת מתי ובאיזה נפח. המד נכתב כל 10 שניות
           תוך כדי ההקלטה, ולכן הוא שורד קריסה ומספר איפה בדיוק היא קרתה.
         */}
+        {eventSilent > 0 && (
+          <div className="capture-diag rec-diag-warn" role="alert">
+            <div className="meta">
+              <strong>
+                🔇 {eventSilent === 1 ? 'הקלטה אחת' : `${eventSilent} הקלטות`} באירוע
+                הזה נשמרו בלי קול
+              </strong>
+            </div>
+            <div className="meta">
+              המיקרופון לא שידר בזמן הצילום. בדקו את החיבור והריצו «בדוק מצלמה
+              ומיקרופון» לפני האורח הבא.
+            </div>
+          </div>
+        )}
         {recProgress && (
           <div className={`capture-diag ${recProgress.completed ? '' : 'rec-diag-warn'}`}>
             <div className="meta">
@@ -2359,7 +2410,9 @@ export default function Admin({ config, onSave, onExit }: Props) {
           <div className="event-modal" onClick={(e) => e.stopPropagation()}>
             <h2>המצלמה עדיין לא נבדקה</h2>
             <p className="step-hint">
-              {cameraCheck.state === 'fail'
+              {cameraCheck.state === 'silent'
+                ? 'בבדיקה האחרונה המיקרופון לא קלט שום קול — סרטונים עלולים לצאת אילמים.'
+                : cameraCheck.state === 'fail'
                 ? `הבדיקה האחרונה נכשלה: ${cameraCheck.info.message}`
                 : 'בדיקה אחת בתחילת הערב מקפיצה את חלונית ההרשאה כאן — כך אף אורח לא ייתקל בה באמצע צילום.'}
             </p>

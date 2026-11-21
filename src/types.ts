@@ -355,6 +355,8 @@ export interface SessionMeta {
   eventId?: string;
   /** חסר בהקלטות ישנות = חתונה */
   eventType?: EventType;
+  /** המיקרופון לא שידר כלום כשההקלטה הסתיימה — הסרטון כנראה בלי קול */
+  micSilent?: boolean;
   relationship: Relationship[];
   depth: Depth;
   timestamp: number;
