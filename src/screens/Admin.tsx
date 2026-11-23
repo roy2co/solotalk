@@ -1912,7 +1912,10 @@ export default function Admin({ config, onSave, onExit }: Props) {
                 />
               </span>
               <span className="orient-label">{opt.label}</span>
-              <span className="orient-hint">{opt.hint}</span>
+              {/* בעיצוב צבעוני מוצג הצבע שחל באירוע הזה, לא שתי האפשרויות */}
+              <span className="orient-hint">
+                {opt.hint || (eventType === 'brita' ? 'ורוד' : 'כחול')}
+              </span>
             </button>
           ))}
         </div>

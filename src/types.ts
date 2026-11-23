@@ -24,16 +24,19 @@ export type EventType = (typeof EVENT_TYPE_OPTIONS)[number]['value'];
  * מתחלף לבד: כחול בברית, ורוד בבריתה. **מסך הצילום נשאר כהה בכולם**,
  * והשאלה שנצרבת בסרטון אינה מושפעת מהבחירה.
  *
+ * `hint` ריק בעיצובים הצבעוניים: הדשבורד מציג שם את הצבע שחל בפועל
+ * («כחול» או «ורוד») לפי סוג האירוע, ולא את שניהם.
+ *
  * היה כאן גם `classic` (שחור־זהב כמו בחתונות). הוא הוסר - ערך כזה ששמור
  * במכשיר מתורגם ל-`pram` ב-`britDesignOf`.
  */
 export const BRIT_DESIGN_OPTIONS = [
   { value: 'pram', label: 'עגלה ובלונים', hint: 'יוניסקס' },
   { value: 'garland', label: 'חבל כביסה וקוביות', hint: 'יוניסקס' },
-  { value: 'balloon', label: 'כדור פורח', hint: 'כחול / ורוד' },
-  { value: 'bow', label: 'פפיון', hint: 'כחול / ורוד' },
-  { value: 'gingham', label: 'משבצות', hint: 'כחול / ורוד' },
-  { value: 'clouds', label: 'עננים ונצנוצים', hint: 'כחול / ורוד' },
+  { value: 'balloon', label: 'כדור פורח', hint: '' },
+  { value: 'bow', label: 'פפיון', hint: '' },
+  { value: 'gingham', label: 'משבצות', hint: '' },
+  { value: 'clouds', label: 'עננים ונצנוצים', hint: '' },
 ] as const;
 export type BritDesign = (typeof BRIT_DESIGN_OPTIONS)[number]['value'];
 
