@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { BritDesign } from '../types';
 import NurseryBackdrop from '../components/NurseryBackdrop';
 
@@ -12,6 +13,8 @@ export interface ChoiceOption {
 
 interface Props {
   design: BritDesign;
+  /** משתני הגופן שנבחר - ראו `britFontVars` */
+  fontVars: Record<string, string>;
   title: string;
   subtitle?: string;
   options: ChoiceOption[];
@@ -34,6 +37,7 @@ interface Props {
  */
 export default function NurseryChoice({
   design,
+  fontVars,
   title,
   subtitle,
   options,
@@ -44,7 +48,7 @@ export default function NurseryChoice({
   const lastIsAlone = columns === 2 && options.length % 2 === 1;
 
   return (
-    <div className={`nw nw-choice nw-${design}`}>
+    <div className={`nw nw-choice nw-${design}`} style={fontVars as CSSProperties}>
       <NurseryBackdrop design={design} mode="choice" />
       <button className="back-link glass" onClick={onBack}>
         ‹ חזרה

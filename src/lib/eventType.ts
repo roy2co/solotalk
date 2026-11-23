@@ -6,6 +6,7 @@
 import type { AppConfig, BritDesign, DepthSettings, EventType } from '../types';
 import {
   BRIT_DESIGN_OPTIONS,
+  BRIT_FONT_OPTIONS,
   DEFAULT_BRIT_DEPTH_SETTINGS,
   DEFAULT_DEPTH_SETTINGS,
 } from '../types';
@@ -54,6 +55,28 @@ export function britDesignOf(config: AppConfig): BritDesign | null {
   return BRIT_DESIGN_OPTIONS.some((o) => o.value === saved)
     ? (saved as BritDesign)
     : 'pram';
+}
+
+/** הגופן שנבחר למסלול הברית. ערך לא מוכר חוזר לברירת המחדל. */
+export function britFontOf(config: AppConfig) {
+  return (
+    BRIT_FONT_OPTIONS.find((f) => f.value === config.britFont) ?? BRIT_FONT_OPTIONS[0]
+  );
+}
+
+/**
+ * משתני ה-CSS של הגופן. מוחלים כ-`style` על `.nw` (וכך עובדים גם בתצוגה
+ * המקדימה שבדשבורד) ועל שורש המסמך (בשביל כותרות מסך התודה).
+ */
+export function britFontVars(font: (typeof BRIT_FONT_OPTIONS)[number]): Record<string, string> {
+  return {
+    '--nw-display': font.family,
+    '--nw-display-weight': String(font.weight),
+    '--nw-display-scale': String(font.scale),
+    '--nw-text': font.textFamily,
+    '--nw-text-weight': String(font.textWeight),
+    '--nw-text-scale': String(font.textScale),
+  };
 }
 
 /**

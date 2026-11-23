@@ -37,6 +37,31 @@ export const BRIT_DESIGN_OPTIONS = [
 ] as const;
 export type BritDesign = (typeof BRIT_DESIGN_OPTIONS)[number]['value'];
 
+/**
+ * הגופן של השם, הכותרות ושורת ההזמנה במסלול ברית/בריתה.
+ *
+ * `scale` מפצה על כך שגופנים שונים נראים בגודל שונה באותו `font-size`:
+ * «כתב יד» צר ונמוך ולכן מוגדל, «מודגש» רחב וכבד ולכן מוקטן. בלי זה
+ * החלפת גופן הייתה שוברת את הפריסה (שם שגולש, כפתור שנדחף למטה).
+ * `text*` הוא הגופן של שורת ההזמנה - לא תמיד אותו גופן של השם, כי גופן
+ * כותרות דק מדי לא נקרא טוב במשפט שלם.
+ */
+export const BRIT_FONT_OPTIONS = [
+  { value: 'bellefair', label: 'עדין', family: "'Bellefair', 'Frank Ruhl Libre', serif", weight: 400, scale: 1,
+    textFamily: "'Frank Ruhl Libre', serif", textWeight: 500, textScale: 1 },
+  { value: 'frank', label: 'קלאסי', family: "'Frank Ruhl Libre', serif", weight: 500, scale: 0.9,
+    textFamily: "'Frank Ruhl Libre', serif", textWeight: 500, textScale: 1 },
+  { value: 'suez', label: 'מודגש', family: "'Suez One', 'Frank Ruhl Libre', serif", weight: 400, scale: 0.84,
+    textFamily: "'Heebo', sans-serif", textWeight: 500, textScale: 0.94 },
+  { value: 'varela', label: 'עגול', family: "'Varela Round', 'Heebo', sans-serif", weight: 400, scale: 0.86,
+    textFamily: "'Varela Round', 'Heebo', sans-serif", textWeight: 400, textScale: 0.92 },
+  { value: 'amatic', label: 'כתב יד', family: "'Amatic SC', 'Heebo', sans-serif", weight: 700, scale: 1.22,
+    textFamily: "'Amatic SC', 'Heebo', sans-serif", textWeight: 700, textScale: 1.3 },
+  { value: 'secular', label: 'מודרני', family: "'Secular One', 'Heebo', sans-serif", weight: 400, scale: 0.84,
+    textFamily: "'Heebo', sans-serif", textWeight: 500, textScale: 0.94 },
+] as const;
+export type BritFont = (typeof BRIT_FONT_OPTIONS)[number]['value'];
+
 /** ערכות צבע פרימיום בסגנון Liquid Glass */
 export const THEME_OPTIONS = ['gold', 'rose', 'champagne', 'emerald', 'sapphire', 'ruby'] as const;
 export type ThemeName = (typeof THEME_OPTIONS)[number];
@@ -290,6 +315,8 @@ export interface AppConfig {
   babyName?: string;
   /** עיצוב מסכי האורח במסלול ברית/בריתה. ראו `BRIT_DESIGN_OPTIONS`. */
   britDesign?: BritDesign;
+  /** גופן השם והכותרות במסלול ברית/בריתה. ראו `BRIT_FONT_OPTIONS`. */
+  britFont?: BritFont;
   /**
    * האם להציג «אחים ואחיות» במסך «מי אתם בשבילי». כבוי כשזה ילד ראשון -
    * ואז «אחר» מתרחב לרוחב מלא במקום להשאיר חור ברשת.

@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import type { AppConfig, BritDesign } from '../types';
 import { formatEventDate, hebrewDate } from '../lib/event';
 import { DEFAULT_CONFIG } from '../lib/config';
-import { britWelcomeTexts, displayName } from '../lib/eventType';
+import { britFontOf, britFontVars, britWelcomeTexts, displayName } from '../lib/eventType';
 import { Pram, Sprig } from '../components/NurseryArt';
 import NurseryBackdrop from '../components/NurseryBackdrop';
 
@@ -57,8 +57,10 @@ export default function WelcomeNursery({ config, design, onStart, preview }: Pro
   const nameMax = design === 'bow' ? 7.4 : 8.6;
 
   // שם ארוך מתכווץ במקום להישבר לשתי שורות ולדחוף את הכפתור מחוץ למסך
+  // `scale` של הגופן נכנס כאן ולא ב-CSS, כי הגודל כבר מחושב לפי אורך השם
+  const font = britFontOf(config);
   const nameStyle: CSSProperties = {
-    fontSize: `${Math.min(nameMax, nameRoom / Math.max(letters.length, 1)).toFixed(2)}em`,
+    fontSize: `${(Math.min(nameMax, nameRoom / Math.max(letters.length, 1)) * font.scale).toFixed(2)}em`,
   };
   const blockStyle: CSSProperties = {
     fontSize: `${Math.min(4, 21 / Math.max(letters.length, 1)).toFixed(2)}em`,
@@ -73,6 +75,7 @@ export default function WelcomeNursery({ config, design, onStart, preview }: Pro
   return (
     <div
       className={`nw nw-${design}${framed ? ' nw-framed' : ''}${preview ? ' nw-preview' : ''}`}
+      style={britFontVars(font) as CSSProperties}
     >
       <NurseryBackdrop design={design} mode="welcome" />
 

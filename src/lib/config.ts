@@ -42,6 +42,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   eventType: 'wedding',
   babyName: '',
   britDesign: 'pram',
+  britFont: 'bellefair',
   britHasSiblings: true,
   britInviteText: DEFAULT_BRIT_INVITE,
   britOpenText: DEFAULT_BRIT_OPEN,

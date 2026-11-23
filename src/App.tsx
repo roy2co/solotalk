@@ -8,7 +8,14 @@ import {
   FRIENDS_PARENT_CATEGORY,
   FRIENDS_SUBCATEGORIES,
 } from './types';
-import { britDesignOf, copyFor, eventTypeOf, isBritType } from './lib/eventType';
+import {
+  britDesignOf,
+  britFontOf,
+  britFontVars,
+  copyFor,
+  eventTypeOf,
+  isBritType,
+} from './lib/eventType';
 import { Garland, HotAirBalloon, NurseryDefs, Pram } from './components/NurseryArt';
 import WelcomeNursery from './screens/WelcomeNursery';
 import NurseryChoice from './screens/NurseryChoice';
@@ -107,6 +114,12 @@ export default function App() {
     else delete root.dataset.skin;
     // קובע את הצבע המשלים באיורים: כחול מאובק לברית, אפרסק לבריתה
     root.dataset.gender = config && eventTypeOf(config) === 'brita' ? 'f' : 'm';
+    // הגופן שנבחר - גם על השורש, בשביל הכותרות של מסך התודה והספירה
+    if (config) {
+      for (const [name, value] of Object.entries(britFontVars(britFontOf(config)))) {
+        root.style.setProperty(name, value);
+      }
+    }
   }, [nursery, lightForBrit, config]);
 
   /**
@@ -248,6 +261,7 @@ export default function App() {
 
   const brit = isBritType(eventTypeOf(config));
   const copy = copyFor(eventTypeOf(config));
+  const fontVars = britFontVars(britFontOf(config));
   // ילד ראשון = אין אחים, והאפשרות יורדת מהמסך (נקבע בדשבורד)
   const britRelationships = BRIT_RELATIONSHIPS.filter(
     (rel) => rel !== 'אחים ואחיות' || config.britHasSiblings !== false,
@@ -364,6 +378,7 @@ export default function App() {
       {screen === 'relationship' && brit && nursery && (
         <NurseryChoice
           design={nursery}
+          fontVars={fontVars}
           title={copy.relationshipTitle}
           subtitle={copy.relationshipSubtitle}
           columns={2}
@@ -401,6 +416,7 @@ export default function App() {
       {screen === 'depth' && nursery && (
         <NurseryChoice
           design={nursery}
+          fontVars={fontVars}
           title="כמה בא לכם לשתף?"
           subtitle="בחרו את מה שמתאים לכם"
           columns={1}

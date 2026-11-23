@@ -3,6 +3,7 @@ import type {
   ActiveEvent,
   AppConfig,
   BritDesign,
+  BritFont,
   DepthSettings,
   DisplayMode,
   EventType,
@@ -14,6 +15,7 @@ import type {
 } from '../types';
 import {
   BRIT_DESIGN_OPTIONS,
+  BRIT_FONT_OPTIONS,
   BRIT_RELATIONSHIP_LABELS,
   BRIT_RELATIONSHIPS,
   DEFAULT_BRIT_DEPTH_SETTINGS,
@@ -1918,6 +1920,45 @@ export default function Admin({ config, onSave, onExit }: Props) {
           גללו הצידה לעוד עיצובים. התצוגה מתעדכנת עם השם, התאריך, התמונה
           והטקסטים שלמטה.
         </p>
+      </div>
+      )}
+
+      {/* ================== מסך פתיחה: גופן ברית/בריתה ================== */}
+      {nav === 'welcome' && brit && (
+      <div className="admin-section">
+        <h2>גופן</h2>
+        <p className="step-hint" style={{ marginBottom: 12 }}>
+          חל על השם, על כותרות המסכים ועל שורת ההזמנה. הבחירה נשמרת מיד,
+          והתצוגות המקדימות שלמעלה מתעדכנות.
+        </p>
+        <div className="font-picker">
+          {BRIT_FONT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              className={`font-opt ${
+                (draft.britFont ?? 'bellefair') === opt.value ? 'selected' : ''
+              }`}
+              onClick={() =>
+                persistConfig(
+                  { ...draft, britFont: opt.value as BritFont },
+                  `גופן «${opt.label}» ✓`,
+                )
+              }
+            >
+              <span
+                className="font-sample"
+                style={{
+                  fontFamily: opt.family,
+                  fontWeight: opt.weight,
+                  fontSize: `${Math.round(34 * opt.scale)}px`,
+                }}
+              >
+                {previewConfig.babyName}
+              </span>
+              <span className="orient-hint">{opt.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
       )}
 

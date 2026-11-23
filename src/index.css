@@ -1,4 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Suez+One&family=Bellefair&family=Frank+Ruhl+Libre:wght@500;700&display=swap');
+/* הגופנים לבחירה במסלול הברית - בבקשה נפרדת, כדי ששם משפחה שגוי כאן לא
+   יפיל את טעינת גופני הבסיס שלמעלה (גוגל מחזירה שגיאה על כל הבקשה). */
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&family=Amatic+SC:wght@700&family=Secular+One&display=swap');
 
 :root {
   /* פלטת PartyTalk - ברירת מחדל (זהב) */
@@ -3872,7 +3875,7 @@ a.mini-btn {
   --ac-deep: #5c4635;
   --ac-glow: rgba(139, 107, 79, 0.22);
   --ac-glow-soft: rgba(139, 107, 79, 0.1);
-  --heading: 'Bellefair', 'Frank Ruhl Libre', 'Heebo', serif;
+  --heading: var(--nw-display, 'Bellefair', 'Frank Ruhl Libre', 'Heebo', serif);
 }
 
 /* הרקע: כתמי צבע רכים על קרם במקום סרטי האורורה */
@@ -4021,7 +4024,8 @@ a.mini-btn {
   font-size: 1em;
 }
 .nw-blk {
-  font-family: 'Frank Ruhl Libre', serif;
+  /* האות בקובייה היא השם, ולכן גם היא בגופן שנבחר */
+  font-family: var(--nw-display, 'Frank Ruhl Libre', serif);
   font-weight: 700;
   line-height: 1;
   width: 1.5em;
@@ -4055,9 +4059,9 @@ a.mini-btn {
 }
 .nw-invite {
   margin: 0;
-  font-family: 'Frank Ruhl Libre', serif;
-  font-weight: 500;
-  font-size: 3.3em;
+  font-family: var(--nw-text, 'Frank Ruhl Libre', serif);
+  font-weight: var(--nw-text-weight, 500);
+  font-size: calc(3.3em * var(--nw-text-scale, 1));
   line-height: 1.2;
 }
 .nw-sub { margin: 0.3em 0 0; font-size: 1.5em; color: var(--nw-dim); max-width: 30em; white-space: pre-line; }
@@ -4103,9 +4107,9 @@ a.mini-btn {
   align-items: center;
 }
 .nw-title {
-  font-family: 'Bellefair', 'Frank Ruhl Libre', serif;
-  font-weight: 400;
-  font-size: 5.6em;
+  font-family: var(--nw-display, 'Bellefair', 'Frank Ruhl Libre', serif);
+  font-weight: var(--nw-display-weight, 400);
+  font-size: calc(5.6em * var(--nw-display-scale, 1));
   line-height: 1.1;
   margin: 0;
   color: var(--nw-ink);
@@ -4203,8 +4207,8 @@ a.mini-btn {
    דשבורד ולא בקנה המידה של התצוגה. */
 .nw h1.nw-blocks { font-size: 1em; margin: 0; }
 .nw h1.nw-name {
-  font-family: 'Bellefair', 'Frank Ruhl Libre', serif;
-  font-weight: 400;
+  font-family: var(--nw-display, 'Bellefair', 'Frank Ruhl Libre', serif);
+  font-weight: var(--nw-display-weight, 400);
   line-height: 1.02;
   margin: 0.12em 0 0;
   color: var(--nw-ink);
@@ -4304,3 +4308,24 @@ a.mini-btn {
 /* בורר סוג האירוע: חתונה בשורה משלה, ברית ובריתה זו לצד זו מתחתיה */
 .event-type-picker { display: grid; grid-template-columns: 1fr 1fr; }
 .event-type-picker .orient-btn:first-child { grid-column: 1 / -1; }
+
+/* ---- בורר הגופנים בדשבורד: השם עצמו, בכל גופן ---- */
+.font-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.font-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 92px;
+  padding: 10px 6px;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  overflow: hidden;
+}
+.font-opt.selected { border-color: var(--ac); box-shadow: 0 0 0 2px var(--ac); }
+.font-sample { font-size: 34px; line-height: 1.1; white-space: nowrap; }
+.font-opt .orient-hint { font-family: var(--sans); }
