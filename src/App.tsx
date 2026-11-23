@@ -11,6 +11,9 @@ import {
 import { britDesignOf, copyFor, eventTypeOf, isBritType } from './lib/eventType';
 import { Garland, NurseryDefs, Pram } from './components/NurseryArt';
 import WelcomeNursery from './screens/WelcomeNursery';
+import NurseryChoice from './screens/NurseryChoice';
+import { DEPTH_CARD_INFO, DEPTH_ORDER } from './lib/depthCards';
+import { DEPTH_LABELS } from './types';
 import { selectBritQuestions } from './lib/britQuestions';
 import { loadConfig, saveConfig } from './lib/config';
 import { selectQuestions } from './lib/questions';
@@ -56,7 +59,7 @@ export default function App() {
 
   /**
    * `false` כשקריאת הקונפיג מהאחסון **נכשלה**. במצב הזה `config` הוא ברירת
-   * מחדל בלבד, ולכן **אסור לכתוב אותו בחזרה** — זה ידרוס את ההגדרות האמיתיות.
+   * מחדל בלבד, ולכן **אסור לכתוב אותו בחזרה** - זה ידרוס את ההגדרות האמיתיות.
    */
   const [storageOk, setStorageOk] = useState(true);
 
@@ -68,7 +71,7 @@ export default function App() {
     });
   }, []);
 
-  // החלת ערכת הצבע על root — בכל שינוי, לא רק בטעינה.
+  // החלת ערכת הצבע על root - בכל שינוי, לא רק בטעינה.
   // כך בחירת ערכה (במסך הפתיחה או בדשבורד) נכנסת לתוקף מיד.
   useEffect(() => {
     document.documentElement.dataset.theme = config?.theme || 'gold';
@@ -78,7 +81,7 @@ export default function App() {
    * עיצוב «צבעי מים» של מסלול ברית/בריתה. `null` = המראה הרגיל.
    *
    * חל **רק על מסכי האורח ורק בזמן אירוע**: הדשבורד ומסך הקוד נשארים
-   * במראה שהמפעיל מכיר, ומסך הצילום נשאר כהה תמיד — שם הצילום הוא הרקע.
+   * במראה שהמפעיל מכיר, ומסך הצילום נשאר כהה תמיד - שם הצילום הוא הרקע.
    */
   const design = config?.activeEvent ? britDesignOf(config) : null;
   const nursery =
@@ -88,14 +91,25 @@ export default function App() {
 
   // בהירות התצוגה - ציר נפרד מערכת הצבע, ולכן תכונה נפרדת.
   // עיצוב צבעי המים בנוי על המצב הבהיר, ולכן הוא מדליק אותו בעצמו.
+  /**
+   * ברית/בריתה = **בהיר גם בדשבורד ובמסך הקוד**, וגם במסך «העמדה תיפתח
+   * בקרוב» שלפני האירוע. רועי ביקש שהמעבר לסוג האירוע הזה ייראה מיד:
+   * שחור הוא המראה של החתונות. רק העיצוב «קלאסי» משאיר את מסכי האורח
+   * כהים, ומסך הצילום כהה תמיד.
+   */
+  const britEvent = !!config && isBritType(eventTypeOf(config));
+  const lightForBrit =
+    britEvent && (screen === 'admin' || screen === 'pin' || !config?.activeEvent);
+
   useEffect(() => {
     const root = document.documentElement;
-    root.dataset.mode = nursery ? 'light' : config?.displayMode || 'dark';
+    root.dataset.mode =
+      nursery || lightForBrit ? 'light' : config?.displayMode || 'dark';
     if (nursery) root.dataset.skin = 'nursery';
     else delete root.dataset.skin;
     // קובע את הצבע המשלים באיורים: כחול מאובק לברית, אפרסק לבריתה
     root.dataset.gender = config && eventTypeOf(config) === 'brita' ? 'f' : 'm';
-  }, [nursery, config]);
+  }, [nursery, lightForBrit, config]);
 
   /**
    * שמירת קונפיג ל-IndexedDB כשהוא משתנה.
@@ -125,7 +139,7 @@ export default function App() {
      * ⚠️ **חובה לשחרר את המצלמה כאן.**
      *
      * מסך הספירה פותח זרם לתצוגה המקדימה. אורח שמבטל שם לא מגיע למסך
-     * הצילום, ולכן `close()` של המקליט לעולם לא ירוץ — והמצלמה הייתה
+     * הצילום, ולכן `close()` של המקליט לעולם לא ירוץ - והמצלמה הייתה
      * נשארת פתוחה עם הנורה דולקת עד לרענון הדף.
      */
     releaseCamera();
@@ -136,7 +150,7 @@ export default function App() {
   /**
    * מוודא גישה למצלמה **לפני** שהאורח מתחיל, ומשחרר מיד.
    *
-   * בלי זה הכשל התגלה רק במסך הצילום — אחרי שהאורח כבר עבר שלושה מסכים.
+   * בלי זה הכשל התגלה רק במסך הצילום - אחרי שהאורח כבר עבר שלושה מסכים.
    * ההרשאה נשמרת לאורך טעינת הדף, ולכן זה עולה חלונית אחת לכל היותר
    * (ובדרך כלל אפס, כי המפעיל הריץ «בדיקת מצלמה» בתחילת הערב).
    * משחררים מיד כדי לא לשרוף סוללה ולא להדליק את מחוון הפרטיות לשווא.
@@ -156,7 +170,7 @@ export default function App() {
   };
 
 
-  // כניסה לניהול: כפתור גלגל דיסקרטי או לחיצה ארוכה (1.2 שנ') בפינה — שניהם פותחים מסך קוד
+  // כניסה לניהול: כפתור גלגל דיסקרטי או לחיצה ארוכה (1.2 שנ') בפינה - שניהם פותחים מסך קוד
   const [pressTimer, setPressTimer] = useState<number | null>(null);
   const startAdminPress = () => {
     const t = window.setTimeout(() => setScreen('pin'), 1200);
@@ -179,7 +193,7 @@ export default function App() {
    *
    * מאז שהמסך הראשי הוא **בחירה יחידה**, «חברים» ו«משפחה» הן זו או זו,
    * ולכן רק תת-מסך אחד יופיע בפועל. השרשור נשאר כי הוא נכון גם כך ולא
-   * מזיק — הוא פשוט לא ייכנס לתרחיש השני.
+   * מזיק - הוא פשוט לא ייכנס לתרחיש השני.
    */
   const nextAfter = (rel: Relationship[], done: 'main' | 'friends') => {
     if (done === 'main' && rel.includes(FRIENDS_PARENT_CATEGORY)) {
@@ -209,7 +223,7 @@ export default function App() {
     setScreen('depth');
   };
 
-  /** מסלול ברית: מסך קרבה אחד, ומשם ישר לעומק — בלי תת-מסכים */
+  /** מסלול ברית: מסך קרבה אחד, ומשם ישר לעומק - בלי תת-מסכים */
   const chooseBritRelationship = (relationship: Relationship[]) => {
     setSession((s) => ({ ...s, relationship }));
     setScreen('depth');
@@ -236,16 +250,20 @@ export default function App() {
 
   const brit = isBritType(eventTypeOf(config));
   const copy = copyFor(eventTypeOf(config));
+  // ילד ראשון = אין אחים, והאפשרות יורדת מהמסך (נקבע בדשבורד)
+  const britRelationships = BRIT_RELATIONSHIPS.filter(
+    (rel) => rel !== 'אחים ואחיות' || config.britHasSiblings !== false,
+  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', position: 'relative' }}>
-      {/* רקע חי — Aurora מאחורי כל המסכים */}
+      {/* רקע חי - Aurora מאחורי כל המסכים */}
       <AuroraBg />
 
       {nursery && <NurseryDefs />}
-      {/* איור קטן במסכי הביניים. לא במסך הפתיחה (יש לו איורים משלו) ולא
-          בספירה לאחור, שם התצוגה המקדימה של המצלמה צריכה את כל תשומת הלב. */}
-      {nursery && screen !== 'welcome' && screen !== 'countdown' && !startError &&
+      {/* איור קטן במסך התודה. מסך הפתיחה ומסכי הבחירה מציירים את האיורים
+          שלהם בעצמם, ובספירה לאחור המצלמה צריכה את כל תשומת הלב. */}
+      {nursery && screen === 'thankyou' &&
         (nursery === 'garland' ? (
           <Garland className="nd-art nd-garland" />
         ) : (
@@ -253,20 +271,20 @@ export default function App() {
         ))}
 
       {/*
-        האחסון לא נקרא — מוצג בכל מסך, כולל לאורחים.
+        האחסון לא נקרא - מוצג בכל מסך, כולל לאורחים.
         בלי החיווי הזה העמדה נראית פשוט «סגורה» וההגדרות נראות כאילו נמחקו,
         בזמן שהן שלמות על הדיסק ורק לא נטענו. רענון פותר; המשך עבודה במצב
         הזה היה דורס אותן.
       */}
       {!storageOk && (
         <div className="storage-warning" role="alert">
-          ⚠️ לא הצלחנו לקרוא את ההגדרות מהמכשיר. <b>ההגדרות לא נמחקו</b> — הן
+          ⚠️ לא הצלחנו לקרוא את ההגדרות מהמכשיר. <b>ההגדרות לא נמחקו</b> - הן
           פשוט לא נטענו, והשמירה מושבתת כדי לא לדרוס אותן.
           <FixHint
             steps={[
               'לחצו «רענון»',
-              'אם זה חוזר: סגרו טאבים אחרים של האפליקציה — טאב פתוח נוסף חוסם את מסד הנתונים',
-              'אל תגדירו הכל מחדש לפני שהרענון הצליח — ההגדרות במקומן והשמירה מושבתת בכוונה',
+              'אם זה חוזר: סגרו טאבים אחרים של האפליקציה - טאב פתוח נוסף חוסם את מסד הנתונים',
+              'אל תגדירו הכל מחדש לפני שהרענון הצליח - ההגדרות במקומן והשמירה מושבתת בכוונה',
             ]}
           />
           <button className="btn secondary" onClick={() => location.reload()}>
@@ -294,7 +312,7 @@ export default function App() {
       )}
 
       {/*
-        בקשת סיבוב — רק לאורחים, לא חוסמת את הניהול.
+        בקשת סיבוב - רק לאורחים, לא חוסמת את הניהול.
 
         **ולא בזמן צילום.** ה-overlay הוא `z-index: 40` מול `.rec-bottom`
         שהוא `6`, ולכן הוא כיסה את כפתור «סיום הקלטה»: אורח שהאייפד הסתובב
@@ -306,7 +324,7 @@ export default function App() {
         <RotatePrompt want={config.orientation ?? 'auto'} />
       )}
 
-      {/* כשל מצלמה בכניסה לזרימה — נעצרים כאן במקום שלושה מסכים קדימה */}
+      {/* כשל מצלמה בכניסה לזרימה - נעצרים כאן במקום שלושה מסכים קדימה */}
       {startError && (
         <div className="screen camera-block">
           <h2>רגע לפני שמתחילים</h2>
@@ -343,11 +361,25 @@ export default function App() {
       {screen === 'relationship' && !brit && (
         <RelationshipScreen onNext={chooseRelationship} onBack={reset} />
       )}
-      {screen === 'relationship' && brit && (
+      {screen === 'relationship' && brit && nursery && (
+        <NurseryChoice
+          design={nursery}
+          title={copy.relationshipTitle}
+          subtitle={copy.relationshipSubtitle}
+          columns={2}
+          options={britRelationships.map((rel) => ({
+            key: rel,
+            label: BRIT_RELATIONSHIP_LABELS[rel] ?? rel,
+          }))}
+          onChoose={(rel) => chooseBritRelationship([rel as Relationship])}
+          onBack={reset}
+        />
+      )}
+      {screen === 'relationship' && brit && !nursery && (
         <SubCategoryScreen
           title={copy.relationshipTitle}
           subtitle={copy.relationshipSubtitle}
-          options={BRIT_RELATIONSHIPS}
+          options={britRelationships}
           labels={BRIT_RELATIONSHIP_LABELS}
           withOther={false}
           onNext={chooseBritRelationship}
@@ -377,7 +409,23 @@ export default function App() {
           }
         />
       )}
-      {screen === 'depth' && (
+      {screen === 'depth' && nursery && (
+        <NurseryChoice
+          design={nursery}
+          title="כמה בא לכם לשתף?"
+          subtitle="בחרו את מה שמתאים לכם"
+          columns={1}
+          options={DEPTH_ORDER.map((depth) => ({
+            key: depth,
+            label: DEPTH_LABELS[depth],
+            hint: DEPTH_CARD_INFO[depth].hint,
+            tag: DEPTH_CARD_INFO[depth].tag,
+          }))}
+          onChoose={(depth) => chooseDepth(depth as Depth)}
+          onBack={() => setScreen('relationship')}
+        />
+      )}
+      {screen === 'depth' && !nursery && (
         <DepthScreen
           onNext={chooseDepth}
           onBack={() =>

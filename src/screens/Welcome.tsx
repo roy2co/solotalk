@@ -3,7 +3,14 @@ import type { AppConfig, ThemeName } from '../types';
 import { THEME_OPTIONS } from '../types';
 import { formatEventDate } from '../lib/event';
 import { DEFAULT_CONFIG } from '../lib/config';
-import { copyFor, displayName, eventTypeOf, genderize, isBritType } from '../lib/eventType';
+import {
+  britWelcomeTexts,
+  copyFor,
+  displayName,
+  eventTypeOf,
+  genderize,
+  isBritType,
+} from '../lib/eventType';
 import defaultLogo from '../assets/logo.png';
 
 interface Props {
@@ -12,7 +19,7 @@ interface Props {
   onThemeChange: (theme: ThemeName) => void;
 }
 
-// מיקומים קבועים לבועות — צמודות לקצוות בלבד, כדי לא לחפוף לתוכן המרכזי (לוגו/שם/כפתור)
+// מיקומים קבועים לבועות - צמודות לקצוות בלבד, כדי לא לחפוף לתוכן המרכזי (לוגו/שם/כפתור)
 const BUBBLE_SPOTS = [
   { top: '10%', left: '3%', delay: '0s', far: false },
   { top: '22%', right: '3%', delay: '-3s', far: false },
@@ -25,7 +32,7 @@ const BUBBLE_SPOTS = [
 function sampleQuestions(config: AppConfig): string[] {
   try {
     // הבועות הן טעימה ממה שהאורח יישאל, ולכן הן חייבות לבוא מהמאגר של
-    // המסלול הפעיל — שאלות על «החתן והכלה» בברית היו פשוט טעות.
+    // המסלול הפעיל - שאלות על «החתן והכלה» בברית היו פשוט טעות.
     const type = eventTypeOf(config);
     const source = isBritType(type)
       ? (config.britQuestions ?? [])
@@ -49,13 +56,17 @@ export default function Welcome({ config, onStart, onThemeChange }: Props) {
 
   const eventName = displayName(config);
   const copy = copyFor(eventTypeOf(config));
+  const brit = isBritType(eventTypeOf(config));
+  // בברית הכותרת נערכת בדשבורד, ובלי תמונה אין מסגרת ריקה
+  const invite = brit ? britWelcomeTexts(config).invite : copy.invite;
+  const showPhoto = !brit || !!config.couplePhotoDataUrl;
   const eventDate = config.activeEvent?.date || config.eventDate;
 
   const activeTheme = config.theme || 'gold';
 
   return (
     <>
-      {/* בורר ערכות צבע מקומי — חץ + סרגל ללמטה */}
+      {/* בורר ערכות צבע מקומי - חץ + סרגל ללמטה */}
       <div className="theme-picker-welcome">
         <button
           className="theme-arrow"
@@ -108,8 +119,8 @@ export default function Welcome({ config, onStart, onThemeChange }: Props) {
         />
 
         {/* השמות מיד מתחת ללוגו: זה מה שהאורח בא לראות, ולכן הוא מקבל את
-            המקום הגבוה ביותר. ה-ON AIR ירד לתחתית — הוא אווירה, לא מידע. */}
-        {/* ON AIR עולה לראש: הוא אומר «העמדה חיה עכשיו», וזה מידע —
+            המקום הגבוה ביותר. ה-ON AIR ירד לתחתית - הוא אווירה, לא מידע. */}
+        {/* ON AIR עולה לראש: הוא אומר «העמדה חיה עכשיו», וזה מידע -
             לא אווירה. בתחתית הוא היה קישוט שאיש לא ראה. */}
         <div className="on-air glass">
           <span className="live-dot" />
@@ -123,6 +134,7 @@ export default function Welcome({ config, onStart, onThemeChange }: Props) {
           <div className="event-date">{formatEventDate(eventDate)}</div>
         )}
 
+        {showPhoto && (
         <div className="photo-wrap">
           <div className="photo-halo" />
           <div className="photo-ring" />
@@ -141,15 +153,16 @@ export default function Welcome({ config, onStart, onThemeChange }: Props) {
             )}
           </div>
         </div>
+        )}
 
         {/**
           * ההזמנה נקראת **ממרחק**, ולכן היא בגופן הכותרות ולא בטקסט הגוף.
           * זו ההוראה היחידה שהאורח צריך כאן; כל השאר מחכה למסך הבא.
           * הטקסט החופשי מהדשבורד יורד לשורה משנית מתחתיה.
           */}
-        <p className="welcome-invite">{copy.invite}</p>
+        {invite && <p className="welcome-invite">{invite}</p>}
         {/* ברירת המחדל כתובה בקול של זוג («השאירו לנו ברכה»), ובמסלול ברית
-            היא סותרת את ההזמנה שמעליה. טקסט שהמפעיל כתב בעצמו — מוצג תמיד. */}
+            היא סותרת את ההזמנה שמעליה. טקסט שהמפעיל כתב בעצמו - מוצג תמיד. */}
         {config.welcomeText?.trim() &&
           !(isBritType(eventTypeOf(config)) &&
             config.welcomeText === DEFAULT_CONFIG.welcomeText) && (

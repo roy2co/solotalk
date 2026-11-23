@@ -22,7 +22,7 @@ function questionsToCsv(questions: Question[]): string {
   );
 }
 
-/** תבנית לדוגמה להורדה — מראה בדיוק איפה כותבים שאלה ואיפה מסמנים קרבה */
+/** תבנית לדוגמה להורדה - מראה בדיוק איפה כותבים שאלה ואיפה מסמנים קרבה */
 export function templateCsv(): string {
   const examples: Question[] = [
     { id: '', text: 'איך הכרתם את בני הזוג?', relationships: ['מלווים של הזוג', 'חברים/חברות מהעבודה'] },

@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Suez+One&family=Bellefair&family=Frank+Ruhl+Libre:wght@500;700&display=swap');
 
 :root {
-  /* פלטת PartyTalk — ברירת מחדל (זהב) */
+  /* פלטת PartyTalk - ברירת מחדל (זהב) */
   --bg: #06060a;
   --bg-soft: #141418;
   --surface: rgba(255, 255, 255, 0.05);
@@ -26,13 +26,13 @@
   --danger: #c8102e;
   --radius: 18px;
 
-  /* Liquid Glass theme variables — ברירת מחדל (זהב) */
+  /* Liquid Glass theme variables - ברירת מחדל (זהב) */
   --ac-light: #f0dfae;
   --ac: #c9a84c;
   --ac-deep: #8f6f23;
   --ac-glow: rgba(201, 168, 76, 0.35);
   --ac-glow-soft: rgba(201, 168, 76, 0.14);
-  /* גווני האורורה — חייבים להיות rgba בשקיפות נמוכה, אחרת הרקע נצבע ומתעוור */
+  /* גווני האורורה - חייבים להיות rgba בשקיפות נמוכה, אחרת הרקע נצבע ומתעוור */
   --aur2: rgba(64, 150, 170, 0.16);
   --aur3: rgba(120, 80, 200, 0.1);
 
@@ -171,9 +171,9 @@
   --ac-deep: #5e1e2f;
 }
 
-/* ערכות צבע פרימיום — Liquid Glass themes */
+/* ערכות צבע פרימיום - Liquid Glass themes */
 
-/* זהב (gold) — ברירת מחדל */
+/* זהב (gold) - ברירת מחדל */
 [data-theme='gold'] {
   --ac-light: #f0dfae;
   --ac: #c9a84c;
@@ -244,7 +244,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Liquid Glass morphism — טקסטורה וגבולות */
+/* Liquid Glass morphism - טקסטורה וגבולות */
 .glass {
   background: var(--glass-fill);
   backdrop-filter: blur(16px) saturate(1.45);
@@ -253,7 +253,7 @@
   box-shadow: inset 0 1px 0 var(--glass-inset), var(--glass-shadow);
 }
 
-/* gradient text — זהב מטאלי אנכי (אור למעלה → עומק למטה), לפי הסקיצה */
+/* gradient text - זהב מטאלי אנכי (אור למעלה → עומק למטה), לפי הסקיצה */
 .gradient-text,
 .screen h1,
 .screen h2 {
@@ -310,7 +310,7 @@ html {
   overscroll-behavior: none;
 }
 
-/* הרקע כולו מגיע מרכיב האורורה (.aurora-container) — ה-body נשאר שחור נקי
+/* הרקע כולו מגיע מרכיב האורורה (.aurora-container) - ה-body נשאר שחור נקי
    כדי שהסרטים יישארו עדינים ולא ייווצר "רחץ" צבע על כל המסך. */
 body {
   font-family: var(--sans);
@@ -335,7 +335,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* safe center: ממורכז כשיש מקום, אבל לא חותך את הקצוות במסך נמוך — מאפשר גלילה */
+  /* safe center: ממורכז כשיש מקום, אבל לא חותך את הקצוות במסך נמוך - מאפשר גלילה */
   justify-content: safe center;
   overflow-y: auto;
   padding: clamp(20px, 4vw, 48px);
@@ -346,7 +346,7 @@ body {
   animation: fade 0.4s ease;
 }
 
-/* במסכים נמוכים (אייפון לרוחב / חלון מחשב קטן) — לצמצם כדי שהכל ייכנס */
+/* במסכים נמוכים (אייפון לרוחב / חלון מחשב קטן) - לצמצם כדי שהכל ייכנס */
 /* עד 950px ולא 720: מסך הפתיחה גדל (תמונה גדולה יותר + תג ON AIR שירד
    לתחתית), ובחלון לפטופ טיפוסי בן ~840px הוא חרג ונדרס בשורת המיתוג
    הקבועה. האייפד ב-1366 לא מושפע. */
@@ -503,7 +503,7 @@ h2 {
   pointer-events: none;
 }
 
-/* shimmer effect for CTA button — הבזק אור נודד לרוחב הכפתור */
+/* shimmer effect for CTA button - הבזק אור נודד לרוחב הכפתור */
 .btn-shimmer {
   position: relative;
   overflow: hidden;
@@ -615,7 +615,7 @@ h2 {
   box-shadow: 0 0 12px var(--ac-glow);
 }
 
-/* ---- כרטיסי בחירה (קרבה / עומק) — רשת כרטיסים עם אימוג'י ---- */
+/* ---- כרטיסי בחירה (קרבה / עומק) - רשת כרטיסים עם אימוג'י ---- */
 .cards {
   display: flex;
   flex-wrap: wrap;
@@ -625,7 +625,7 @@ h2 {
 }
 
 /* המסך הראשי ירד משמונה כרטיסים לשלושה. רשת של ארבע עמודות הייתה משאירה
-   את הכרטיס השלישי יתום בשורה שנייה — שלוש עמודות שוות, ובמסך צר נערמות. */
+   את הכרטיס השלישי יתום בשורה שנייה - שלוש עמודות שוות, ובמסך צר נערמות. */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -683,7 +683,7 @@ h2 {
   filter: var(--drop-soft);
 }
 
-/* אייקון קו-זהב: קובץ PNG משמש כמסכה, והצבע מגיע מגרדיאנט הערכה —
+/* אייקון קו-זהב: קובץ PNG משמש כמסכה, והצבע מגיע מגרדיאנט הערכה -
    כך האייקון מתחלף יחד עם ערכת הצבע שנבחרה. */
 .card-icon {
   width: clamp(52px, 6vw, 72px);
@@ -795,7 +795,7 @@ h2 {
 /* כפתור גלגל דיסקרטי לכניסה לניהול.
    ה-safe-area נדרש כי index.html מצהיר viewport-fit=cover + black-translucent:
    במצב standalone באייפד התוכן נמתח מתחת לשורת הסטטוס של iOS, ובלי ההיסט
-   הכפתור היה נחבא מתחת לשעון/סוללה. בדפדפן רגיל ה-fallback הוא 0 — אין שינוי. */
+   הכפתור היה נחבא מתחת לשעון/סוללה. בדפדפן רגיל ה-fallback הוא 0 - אין שינוי. */
 .gear-btn {
   position: fixed;
   top: calc(14px + env(safe-area-inset-top, 0px));
@@ -819,7 +819,7 @@ h2 {
   border-color: var(--glass-border-strong);
 }
 
-/* קישור חזרה דיסקרטי בפינה העליונה (צד ההתחלה — ימין ב-RTL) */
+/* קישור חזרה דיסקרטי בפינה העליונה (צד ההתחלה - ימין ב-RTL) */
 .back-link {
   position: fixed;
   top: calc(20px + env(safe-area-inset-top, 0px));
@@ -918,7 +918,7 @@ h2 {
   align-items: center;
   gap: 10px;
   /* יושב מתחת ל-CTA. המרווח התחתון מפנה מקום ל«SOLOTALK · BY PARTYTALK»
-     שהיא `position: fixed` בתחתית — בלעדיו השניים נדרסים זה על זה. */
+     שהיא `position: fixed` בתחתית - בלעדיו השניים נדרסים זה על זה. */
   margin: 16px 0 46px;
   padding: 9px 22px;
   border-radius: 999px;
@@ -962,7 +962,7 @@ h2 {
 /* ---- מסגרת תמונת זוג: הילה + טבעת מסתובבת + עיגול תמונה ---- */
 .photo-wrap {
   position: relative;
-  /* גם ברוחב וגם בגובה — כדי שהמסך תמיד ייכנס בלי גלילה */
+  /* גם ברוחב וגם בגובה - כדי שהמסך תמיד ייכנס בלי גלילה */
   width: min(310px, 68vw, 34vh);
   aspect-ratio: 1;
   margin: 6px 0;
@@ -1044,7 +1044,7 @@ h2 {
   to { transform: scale(1.1); opacity: 0.75; }
 }
 
-/* ---- בועות שאלה צפות (דקורטיביות) — מתחת לתוכן הראשי (z-index 2), מעל הרקע ---- */
+/* ---- בועות שאלה צפות (דקורטיביות) - מתחת לתוכן הראשי (z-index 2), מעל הרקע ---- */
 .bubbles {
   position: fixed;
   inset: 0;
@@ -1084,7 +1084,7 @@ h2 {
   filter: blur(0.3px);
 }
 
-/* במסכים בינוניים — לצמצם ולהסתיר את הרחוקות */
+/* במסכים בינוניים - לצמצם ולהסתיר את הרחוקות */
 @media (max-width: 1000px) {
   .bubble {
     max-width: 150px;
@@ -1095,7 +1095,7 @@ h2 {
   }
 }
 
-/* במסכים צרים (טלפון) — התוכן המרכזי תופס את כל הרוחב, אז מוותרים על הבועות */
+/* במסכים צרים (טלפון) - התוכן המרכזי תופס את כל הרוחב, אז מוותרים על הבועות */
 @media (max-width: 820px) {
   .bubbles {
     display: none;
@@ -1107,7 +1107,7 @@ h2 {
     padding-top: 78px;
   }
 
-  /* כרטיסים קומפקטיים — כדי שיותר מהם ייכנסו למסך בלי גלילה ארוכה */
+  /* כרטיסים קומפקטיים - כדי שיותר מהם ייכנסו למסך בלי גלילה ארוכה */
   .cards {
     gap: 12px;
     width: 100%;
@@ -1138,7 +1138,7 @@ h2 {
     font-size: 17px;
   }
 
-  /* אייקון בצד, שם והסבר אחד מתחת לשני — חוסך גובה.
+  /* אייקון בצד, שם והסבר אחד מתחת לשני - חוסך גובה.
      חל רק על כרטיסים שאינם ברשת (מסך העומק), כדי לא לשבור
      את הפריסה האנכית והממורכזת של כרטיסי בחירת הקרבה. */
   .cards:not(.cards-grid) .card {
@@ -1196,7 +1196,7 @@ h2 {
   }
 }
 
-/* מעל הבועות — התוכן הראשי */
+/* מעל הבועות - התוכן הראשי */
 .screen {
   position: relative;
   z-index: 2;
@@ -1302,7 +1302,7 @@ h2 {
   object-fit: cover;
 }
 
-/* חיווי הקלטה — קומפקטי ודחוק לפינה.
+/* חיווי הקלטה - קומפקטי ודחוק לפינה.
    השאלה הנצרבת מתחילה ב-6% מגובה הקנבס, והטקסט מגיע כמעט לרוחב מלא ועובר
    מתחת לתג. תג גדול הותיר ~12px מרווח בלבד והתנגש ויזואלית בשאלה, שהיא
    הדבר הכי חשוב על המסך. */
@@ -1395,7 +1395,7 @@ h2 {
   }
 }
 
-/* סרגל בקרה תחתון — 3 עמודות כדי שהכפתורים לעולם לא יתנגשו.
+/* סרגל בקרה תחתון - 3 עמודות כדי שהכפתורים לעולם לא יתנגשו.
    direction:ltr כדי ש"סיום" יישב תמיד פיזית בשמאל. */
 .rec-bottom {
   position: absolute;
@@ -1417,7 +1417,7 @@ h2 {
   pointer-events: auto;
 }
 
-/* כפתור סיום הקלטה — אדום, פינה שמאלית-תחתונה */
+/* כפתור סיום הקלטה - אדום, פינה שמאלית-תחתונה */
 .rec-finish {
   grid-column: 1;
   justify-self: start;
@@ -1426,14 +1426,14 @@ h2 {
   font-size: clamp(17px, 2.2vw, 23px);
 }
 
-/* כפתור "מוכנים לשאלה הבאה" — ממורכז, מתחת לשאלה */
+/* כפתור "מוכנים לשאלה הבאה" - ממורכז, מתחת לשאלה */
 .rec-next {
   grid-column: 2;
   justify-self: center;
   direction: rtl;
 }
 
-/* "להחליף שאלה" — פעולה משנית בעמודה הימנית.
+/* "להחליף שאלה" - פעולה משנית בעמודה הימנית.
    במכוון לא זהב מלא: כדי שלא יתחרה עם "לשאלה הבאה" על תשומת הלב. */
 /**
  * «להחליף שאלה» יושב מעל **וידאו חי**, ולכן טוקני הזכוכית הרגילים בלעו אותו.
@@ -1468,7 +1468,7 @@ h2 {
   color: var(--ac-light);
 }
 
-/* מסך צר (טלפון): שלושה כפתורים לא נכנסים בשורה אחת —
+/* מסך צר (טלפון): שלושה כפתורים לא נכנסים בשורה אחת -
    "להחליף שאלה" עולה לשורה נפרדת מעל השניים האחרים. */
 @media (max-width: 760px) {
   .rec-bottom {
@@ -1522,7 +1522,7 @@ h2 {
   opacity: 0.75;
 }
 
-/* מיקרופון מת — במרכז המסך, אדום, ולא נעלם עד שהקול חוזר.
+/* מיקרופון מת - במרכז המסך, אדום, ולא נעלם עד שהקול חוזר.
    זו התקלה היחידה שהופכת את הסרטון לחסר ערך, ולכן היא לא עדינה. */
 .rec-mic-dead {
   position: absolute;
@@ -1551,7 +1551,7 @@ h2 {
   font-weight: 500;
 }
 
-/* רמז "הביטו למצלמה" — למעלה, מפנה את המבט כלפי העדשה */
+/* רמז "הביטו למצלמה" - למעלה, מפנה את המבט כלפי העדשה */
 .look-hint {
   position: absolute;
   top: 24%;
@@ -1579,7 +1579,7 @@ h2 {
 }
 
 /* ---- מסך ניהול ---- */
-/* הדשבורד עצמו לא גולל — הוא עמודה של סרגל עליון + מעטפת התפריט.
+/* הדשבורד עצמו לא גולל - הוא עמודה של סרגל עליון + מעטפת התפריט.
    הגלילה חיה ב-.admin-body בלבד, ולכן התפריט תמיד במקום. */
 .admin {
   direction: rtl;
@@ -1670,7 +1670,7 @@ h2 {
   padding-bottom: 40px;
 }
 
-/* בנייד סרגל צד קבוע אוכל חצי מסך — לכן שורת טאבים גוללת למעלה */
+/* בנייד סרגל צד קבוע אוכל חצי מסך - לכן שורת טאבים גוללת למעלה */
 @media (max-width: 700px) {
   .admin {
     padding: 0 14px;
@@ -1707,7 +1707,7 @@ h2 {
   }
 }
 
-/* שורת שמור/יציאה — ממורכזת ודביקה למעלה בזמן גלילה */
+/* שורת שמור/יציאה - ממורכזת ודביקה למעלה בזמן גלילה */
 .admin-topbar {
   position: sticky;
   top: 0;
@@ -1717,7 +1717,7 @@ h2 {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  /* ריפוד ולא היסט — הסרגל הוא sticky top:0, ובמצב standalone הוא צריך
+  /* ריפוד ולא היסט - הסרגל הוא sticky top:0, ובמצב standalone הוא צריך
      להישאר צמוד לראש ורק לדחוף את התוכן שלו מתחת לשורת הסטטוס */
   padding: calc(18px + env(safe-area-inset-top, 0px)) 0 18px;
   margin-bottom: 8px;
@@ -1864,7 +1864,7 @@ h2 {
 }
 
 /* ---- בנק השאלות המלא (מכווץ) ---- */
-/* בלי overflow:hidden — הוא היה שובר את ה-sticky של הכותרת למטה */
+/* בלי overflow:hidden - הוא היה שובר את ה-sticky של הכותרת למטה */
 .bank-block {
   margin-top: 28px;
   border-radius: 14px;
@@ -1967,7 +1967,7 @@ h2 {
   font-weight: 600;
 }
 
-/* קישור שמתחזה לכפתור (למשל "☁️ צפייה") — צריך יישור זהה לכפתורים שלצידו */
+/* קישור שמתחזה לכפתור (למשל "☁️ צפייה") - צריך יישור זהה לכפתורים שלצידו */
 a.mini-btn {
   display: inline-flex;
   align-items: center;
@@ -2081,7 +2081,7 @@ a.mini-btn {
   align-items: center;
 }
 
-/* מונה דילוגים ליד השאלה — סימן ששווה לשקול לנסח מחדש או להסיר */
+/* מונה דילוגים ליד השאלה - סימן ששווה לשקול לנסח מחדש או להסיר */
 .q-skips {
   flex-shrink: 0;
   display: inline-flex;
@@ -2360,7 +2360,7 @@ a.mini-btn {
   color: var(--danger);
 }
 
-/* כרטיס גיבוי ענק — הדבר הכי חשוב לעובד */
+/* כרטיס גיבוי ענק - הדבר הכי חשוב לעובד */
 .backup-hero {
   display: flex;
   flex-direction: column;
@@ -2375,7 +2375,7 @@ a.mini-btn {
 }
 /* ---- קוד אירוע, אירועים קודמים, כיוון העמדה ---- */
 
-/* תת-מסך המשפחה — בלי אייקונים, ולכן כרטיסים נמוכים יותר בשורה אחת */
+/* תת-מסך המשפחה - בלי אייקונים, ולכן כרטיסים נמוכים יותר בשורה אחת */
 .cards.family-sub {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -2445,7 +2445,7 @@ a.mini-btn {
   border: 1px solid var(--glass-border);
 }
 
-/* מספר האירועים נדחף לקצה השני — הכותרת נקראת כשורה אחת ולא כרשימת מילים */
+/* מספר האירועים נדחף לקצה השני - הכותרת נקראת כשורה אחת ולא כרשימת מילים */
 .cloud-device-count {
   margin-inline-start: auto;
   font-family: var(--sans);
@@ -2530,7 +2530,7 @@ a.mini-btn {
   padding: 0 20px 48px;
 }
 
-/* הכותרת נדבקת לראש — ברשימה ארוכה «סגירה» חייבת להישאר בהישג יד */
+/* הכותרת נדבקת לראש - ברשימה ארוכה «סגירה» חייבת להישאר בהישג יד */
 .archive-head {
   position: sticky;
   top: 0;
@@ -2622,7 +2622,7 @@ a.mini-btn {
 }
 
 /* פעולות מוקטנות: הן חוזרות בכל שורה, ובגודל מלא הן מושכות יותר תשומת לב
-   משמות האירועים עצמם — שהם מה שמחפשים ברשימה */
+   משמות האירועים עצמם - שהם מה שמחפשים ברשימה */
 .archive-actions {
   display: flex;
   gap: 8px;
@@ -2635,7 +2635,7 @@ a.mini-btn {
   padding: 9px 14px;
 }
 
-/* האירוע הפעיל מסומן בהדגשה, לא בהעמעמה — הוא הכי חשוב ברשימה */
+/* האירוע הפעיל מסומן בהדגשה, לא בהעמעמה - הוא הכי חשוב ברשימה */
 .archive-card.archive-active {
   border-color: var(--ac);
   background: var(--glass-fill-strong);
@@ -2764,7 +2764,7 @@ a.mini-btn {
   line-height: 1.5;
 }
 
-/* רשימת ההשלכות במודל מחיקת אירוע — מה בדיוק נמחק ומה נשאר */
+/* רשימת ההשלכות במודל מחיקת אירוע - מה בדיוק נמחק ומה נשאר */
 .delete-facts {
   margin: 4px 0 18px;
   padding-inline-start: 20px;
@@ -2823,7 +2823,7 @@ a.mini-btn {
   line-height: 1.4;
 }
 
-/* בקשת סיבוב — מכסה את זרימת האורח, אך לא את גלגל הניהול (z-index נמוך ממנו) */
+/* בקשת סיבוב - מכסה את זרימת האורח, אך לא את גלגל הניהול (z-index נמוך ממנו) */
 .rotate-prompt {
   position: fixed;
   inset: 0;
@@ -2856,7 +2856,7 @@ a.mini-btn {
   }
 }
 
-/* פעולות ההוצאה — יושבות בכרטיס הגיבוי כי שם העובד מסתכל בסוף הערב */
+/* פעולות ההוצאה - יושבות בכרטיס הגיבוי כי שם העובד מסתכל בסוף הערב */
 .hero-actions {
   display: flex;
   gap: 10px;
@@ -3097,7 +3097,7 @@ a.mini-btn {
   mix-blend-mode: var(--grain-blend);
 }
 
-/* רשת עדינה — דוהה לקצוות דרך מסכה רדיאלית (כמו בסקיצה) */
+/* רשת עדינה - דוהה לקצוות דרך מסכה רדיאלית (כמו בסקיצה) */
 .aurora-grid {
   position: absolute;
   inset: 0;
@@ -3110,7 +3110,7 @@ a.mini-btn {
   mask-image: radial-gradient(ellipse 90% 80% at 50% 45%, black 30%, transparent 78%);
 }
 
-/* נצנוצים — כוכבים דקוקים */
+/* נצנוצים - כוכבים דקוקים */
 .aurora-sparks {
   position: absolute;
   inset: 0;
@@ -3144,7 +3144,7 @@ a.mini-btn {
   50% { opacity: 0.8; transform: scale(1); }
 }
 
-/* כיבוד העדפת תנועה מופחתת — כיבוי אנימציות Aurora */
+/* כיבוד העדפת תנועה מופחתת - כיבוי אנימציות Aurora */
 @media (prefers-reduced-motion: reduce) {
   .aurora-ribbon {
     animation: none !important;
@@ -3238,7 +3238,7 @@ a.mini-btn {
   flex-shrink: 0;
 }
 
-/* ערכות צבע — מיפוי לפי data-theme */
+/* ערכות צבע - מיפוי לפי data-theme */
 .swatch.gold {
   background: linear-gradient(135deg, #f3e5b8, #c9a84c);
   box-shadow: 0 0 16px rgba(201, 168, 76, 0.3);
@@ -3505,13 +3505,13 @@ a.mini-btn {
   }
 }
 
-/* מד הקלטה שנקטעה — אדום, כי זה בדיוק הממצא שמחפשים במבחן העומס */
+/* מד הקלטה שנקטעה - אדום, כי זה בדיוק הממצא שמחפשים במבחן העומס */
 .rec-diag-warn {
   border-color: rgba(200, 16, 46, 0.4) !important;
   background: rgba(200, 16, 46, 0.1) !important;
 }
 
-/* כשל קריאת הקלטות — חייב להיראות כמו אזעקה, לא כמו הערה */
+/* כשל קריאת הקלטות - חייב להיראות כמו אזעקה, לא כמו הערה */
 .storage-read-error {
   border-color: rgba(200, 16, 46, 0.5) !important;
   background: rgba(200, 16, 46, 0.12) !important;
@@ -3538,13 +3538,13 @@ a.mini-btn {
   z-index: 5;
 }
 
-/* מצב אזהרה — אותו מקום בדיוק, רק צבע אחר. לא אלמנט נוסף. */
+/* מצב אזהרה - אותו מקום בדיוק, רק צבע אחר. לא אלמנט נוסף. */
 .rec-elapsed.warn {
   color: var(--ac-light);
   border-color: var(--ac);
 }
 
-/* גרסה בתחתית תפריט הדשבורד — לאימות מהיר על המכשיר עצמו */
+/* גרסה בתחתית תפריט הדשבורד - לאימות מהיר על המכשיר עצמו */
 .admin-version {
   margin-top: 14px;
   padding: 10px 12px 4px;
@@ -3580,7 +3580,7 @@ a.mini-btn {
   align-items: center;
   gap: 6px;
   padding: 9px 16px;
-  min-height: 40px; /* יעד מגע — העמדה נצפית ממרחק */
+  min-height: 40px; /* יעד מגע - העמדה נצפית ממרחק */
   border-radius: 999px;
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.55));
   background: var(--glass-fill, rgba(255, 255, 255, 0.12));
@@ -3653,7 +3653,7 @@ a.mini-btn {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* מראה — כך האורח רואה את עצמו כמו במראה ומתמקם אינטואיטיבית */
+  /* מראה - כך האורח רואה את עצמו כמו במראה ומתמקם אינטואיטיבית */
   transform: scaleX(-1);
 }
 
@@ -3698,7 +3698,7 @@ a.mini-btn {
    נמדד באירוע הראשון שאורחים עוברים ליד ולא קולטים של מי האירוע. השמות
    וההזמנה גדלו דרמטית, וכל השאר התכווץ סביבם. */
 
-/* הלוגו מזהה את המוצר, לא את האירוע — אין סיבה שיתחרה בשמות */
+/* הלוגו מזהה את המוצר, לא את האירוע - אין סיבה שיתחרה בשמות */
 .welcome-logo.small {
   height: clamp(40px, 6vh, 56px);
 }
@@ -3713,7 +3713,7 @@ a.mini-btn {
   width: min(400px, 76vw, 40vh);
 }
 
-/* ההזמנה — בגופן הכותרות, נקראת משני מטר */
+/* ההזמנה - בגופן הכותרות, נקראת משני מטר */
 .welcome-invite {
   font-family: var(--heading);
   font-size: clamp(30px, 5.4vw, 58px);
@@ -3723,7 +3723,7 @@ a.mini-btn {
   text-wrap: balance;
 }
 
-/* הטקסט החופשי מהדשבורד — משני, לא מתחרה */
+/* הטקסט החופשי מהדשבורד - משני, לא מתחרה */
 .welcome-sub {
   font-size: clamp(14px, 1.7vw, 18px);
   opacity: 0.72;
@@ -3731,12 +3731,12 @@ a.mini-btn {
   max-width: 46ch;
 }
 
-/* ON AIR בראש — בגודל הנוכחי, ליד הלוגו */
+/* ON AIR בראש - בגודל הנוכחי, ליד הלוגו */
 .welcome-screen .on-air {
   margin: 0;
 }
 
-/* ================= מסך הצילום — סרגל עליון =================
+/* ================= מסך הצילום - סרגל עליון =================
    כל מה שאינו חלק מהסרטון גר כאן. הסרגל יושב על ה-scrim הכהה שכבר
    מצויר מעל השאלה הצרובה, ולכן לא נדרש שינוי במה שנכנס לקובץ. */
 .rec-topbar {
@@ -3756,7 +3756,7 @@ a.mini-btn {
 }
 .rec-topbar > * { pointer-events: auto; }
 
-/* אשכול מדדים אחד — נקרא כמו לוח מחוונים, לא כשלוש בועות */
+/* אשכול מדדים אחד - נקרא כמו לוח מחוונים, לא כשלוש בועות */
 .rec-status {
   display: inline-flex;
   align-items: stretch;
@@ -3818,53 +3818,32 @@ a.mini-btn {
 
 .rec-finish { font-size: clamp(14px, 1.9vw, 19px); padding: 14px 24px; }
 
-/* «החלף» — טבעת מסתובבת כדי שייתפס בעין בזמן צילום */
+/* «החלף» - בלי אנימציה. הייתה כאן טבעת מסתובבת כדי שהכפתור ייתפס בעין,
+   אבל היא משכה את המבט מהמצלמה בזמן שהאורח מדבר. הכפתור נשאר בולט
+   מספיק בזכות המילוי והמסגרת הבהירה שלו. */
 .rec-swap {
-  position: relative;
   border-radius: 999px;
   padding: 16px 24px;
   font-size: clamp(14px, 1.9vw, 19px);
-  isolation: isolate;
-}
-.rec-swap::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 999px;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    #e05a5a 40deg,
-    #e0b64c 90deg,
-    transparent 150deg
-  );
-  animation: rec-swap-spin 2.6s linear infinite;
-  z-index: -2;
-}
-.rec-swap::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: #2b2530;
-  z-index: -1;
-}
-@keyframes rec-swap-spin { to { transform: rotate(360deg); } }
-
-@media (prefers-reduced-motion: reduce) {
-  .rec-swap::before { animation: none; }
 }
 
 /* ==========================================================================
    עיצובי «צבעי מים» למסלול ברית/בריתה  (data-skin='nursery')
 
-   הסקין מופעל ע"י App על מסכי האורח בלבד — לא על הדשבורד ולא על מסך
+   הסקין מופעל ע"י App על מסכי האורח בלבד - לא על הדשבורד ולא על מסך
    הצילום. הוא יושב מעל המצב הבהיר (App מדליק גם data-mode='light'), ולכן
    כאן רק מה ששונה ממנו: גוונים, גופן כותרות, רקע, וכפתור.
    ========================================================================== */
-:root[data-skin='nursery'] {
+:root {
+  /* צבעי האיורים מוגדרים תמיד ולא רק תחת הסקין: התצוגה המקדימה בדשבורד
+     מציירת את אותם איורים בלי שהסקין פעיל. */
   --il-accent: #a9bccb; /* ברית: כחול מאובק */
   --il-sage: #a3ad92;
+}
+:root[data-gender='f'] {
+  --il-accent: #e6bfae; /* בריתה: אפרסק */
+}
+:root[data-skin='nursery'] {
   --bg: #f7f2ea;
   --text: #5c4635;
   --text-dim: rgba(92, 70, 53, 0.68);
@@ -3874,9 +3853,6 @@ a.mini-btn {
   --ac-glow: rgba(139, 107, 79, 0.22);
   --ac-glow-soft: rgba(139, 107, 79, 0.1);
   --heading: 'Bellefair', 'Frank Ruhl Libre', 'Heebo', serif;
-}
-:root[data-skin='nursery'][data-gender='f'] {
-  --il-accent: #e6bfae; /* בריתה: אפרסק */
 }
 
 /* הרקע: כתמי צבע רכים על קרם במקום סרטי האורורה */
@@ -3914,7 +3890,7 @@ a.mini-btn {
   overflow: hidden;
 }
 
-/* איור קטן במסכי הביניים (קרבה, עומק, תודה) — מאחורי התוכן */
+/* איור קטן במסכי הביניים (קרבה, עומק, תודה) - מאחורי התוכן */
 .nd-art {
   position: fixed;
   z-index: 1;
@@ -3934,7 +3910,7 @@ a.mini-btn {
 
 /* ---- מסך הפתיחה ----
    1em = 2.2% מרוחב אייפד לאורך. המסך כולו 45.45em × 65.4em, והנוסחה
-   בוחרת את הקטן מבין רוחב וגובה — כך הוא נכנס גם כשהאייפד שוכב. */
+   בוחרת את הקטן מבין רוחב וגובה - כך הוא נכנס גם כשהאייפד שוכב. */
 .nw {
   --nw-ink: #5c4635;
   --nw-dim: rgba(92, 70, 53, 0.68);
@@ -3954,7 +3930,7 @@ a.mini-btn {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 4em 5em;
+  padding: 4em 5em 2em;
   color: var(--nw-ink);
   font-family: var(--sans);
 }
@@ -3990,7 +3966,8 @@ a.mini-btn {
 .nw-rule::before,
 .nw-rule::after { content: ''; flex: 1; height: 0.08em; background: var(--nw-line); }
 .nw-rule b { width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--il-accent); }
-.nw-date { font-size: 1.55em; letter-spacing: 0.2em; margin-top: 0.45em; color: var(--nw-dim); }
+/* צבע מלא ומשקל בינוני: על כתמי הרקע טקסט שקוף-למחצה ודק פשוט נבלע */
+.nw-date { font-size: 1.6em; font-weight: 500; letter-spacing: 0.14em; margin-top: 0.45em; color: var(--nw-ink); }
 
 .nw-photo {
   border-radius: 50%;
@@ -4049,8 +4026,15 @@ a.mini-btn {
 .nw-stage2 .nw-sprig.l { left: 4.2em; transform: rotate(-24deg); }
 .nw-stage2 .nw-sprig.r { right: 4.2em; transform: rotate(24deg) scaleX(-1); }
 
+.nw-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
 .nw-invite {
-  margin: auto 0 0;
+  margin: 0;
   font-family: 'Frank Ruhl Libre', serif;
   font-weight: 500;
   font-size: 3.3em;
@@ -4058,6 +4042,7 @@ a.mini-btn {
 }
 .nw-sub { margin: 0.3em 0 0; font-size: 1.5em; color: var(--nw-dim); max-width: 30em; white-space: pre-line; }
 .nw-open { font-size: 1.25em; font-weight: 500; letter-spacing: 0.28em; margin-top: 0.5em; color: var(--nw-wood); }
+.nw-bottom > .nw-open:first-child { margin-top: 0; }
 .nw-cta {
   margin-top: 0.7em;
   font-family: var(--sans);
@@ -4075,9 +4060,148 @@ a.mini-btn {
   transition: transform 0.18s ease;
 }
 .nw-cta:active { transform: scale(0.96); }
-.nw-foot { margin-top: 1.3em; font-size: 1.05em; font-weight: 500; letter-spacing: 0.4em; padding-left: 0.4em; opacity: 0.55; direction: ltr; }
+.nw-foot { margin-top: 2.6em; font-size: 0.9em; font-weight: 500; letter-spacing: 0.4em; padding-left: 0.4em; opacity: 0.55; direction: ltr; }
 
 /* Bellefair דקה מ-Suez One, ולכן הכותרות במסכי הביניים גדלות כדי לשמור
    על אותה נוכחות ממרחק */
 [data-skin='nursery'] .screen h1 { font-size: clamp(40px, 7.4vw, 84px); }
 [data-skin='nursery'] .screen h2 { font-size: clamp(34px, 5.8vw, 62px); }
+
+/* בלי תמונה: העגלה לבדה במרכז, עם ענף מכל צד */
+.nw-stage.solo { height: 21em; }
+.nw-stage.solo .nw-pram { left: 50%; right: auto; bottom: 0; width: 19.2em; height: 21em; transform: translateX(-50%); }
+.nw-stage.solo .nw-sprig { top: auto; bottom: 0.4em; width: 5.4em; height: 10.8em; }
+.nw-stage.solo .nw-sprig.l { left: 2.6em; right: auto; transform: rotate(-26deg); }
+.nw-stage.solo .nw-sprig.r { right: 2.6em; left: auto; transform: rotate(26deg) scaleX(-1); }
+
+/* ---- מסכי בחירה: «מי אתם בשבילי», «כמה בא לכם לשתף» ---- */
+.nw-choice-body {
+  margin: auto 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.nw-title {
+  font-family: 'Bellefair', 'Frank Ruhl Libre', serif;
+  font-weight: 400;
+  font-size: 5.6em;
+  line-height: 1.1;
+  margin: 0;
+  color: var(--nw-ink);
+}
+.nw-rs { font-size: 1.9em; margin: 0.5em 0 0; color: var(--nw-dim); }
+.nw-opts { width: 100%; display: grid; gap: 1.3em; margin-top: 2.4em; }
+.nw-opts.cols-2 { grid-template-columns: 1fr 1fr; }
+.nw-opts.cols-1 { grid-template-columns: 1fr; gap: 1.6em; }
+.nw-opt {
+  position: relative;
+  font-family: var(--sans);
+  color: var(--nw-ink);
+  min-height: 7.6em;
+  padding: 0.8em 1em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  background: rgba(255, 253, 249, 0.88);
+  border: 0.06em solid var(--nw-line);
+  border-radius: 1.4em;
+  box-shadow: 0 0.5em 1.6em rgba(110, 80, 45, 0.1);
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.nw-opt:active { transform: scale(0.97); background: #fff; }
+.nw-opt.wide { grid-column: 1 / -1; }
+.nw-opt-label { font-size: 2.2em; font-weight: 500; line-height: 1.2; }
+.nw-opt.with-hint { min-height: 9.4em; }
+.nw-opt.with-hint .nw-opt-label { font-size: 2.6em; }
+.nw-opt-hint { font-size: 1.5em; color: var(--nw-dim); }
+.nw-opt-tag {
+  position: absolute;
+  top: -0.9em;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.15em;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 0.3em 1em;
+  border-radius: 99em;
+  background: #8b6b4f;
+  color: #fbf6ee;
+  white-space: nowrap;
+}
+.nw-pram-corner { position: absolute; left: 1.6em; bottom: 1.6em; width: 9em; height: 9.8em; pointer-events: none; }
+
+/* ---- תצוגה מקדימה ממוזערת בדשבורד ---- */
+.design-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.design-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--sans);
+  cursor: pointer;
+}
+.design-opt.selected { border-color: var(--ac); box-shadow: 0 0 0 2px var(--ac); }
+.design-opt .orient-hint { text-align: center; }
+.design-preview {
+  /* 132px = 45.45em: אותו מסך בדיוק, בקנה מידה של תמונה ממוזערת */
+  width: 132px;
+  height: 190px;
+  font-size: 2.904px;
+  border-radius: 9px;
+  overflow: hidden;
+  position: relative;
+  flex: none;
+  box-shadow: 0 2px 8px rgba(40, 28, 12, 0.18);
+  background:
+    radial-gradient(46% 24% at 12% 10%, rgba(222, 200, 170, 0.42), transparent 72%),
+    radial-gradient(50% 24% at 20% 92%, rgba(222, 200, 170, 0.36), transparent 72%),
+    #f7f2ea;
+  pointer-events: none;
+}
+.nw.nw-preview { font-size: 1em; width: 45.45em; height: 65.4em; flex: none; }
+.design-preview.classic {
+  background: radial-gradient(70% 34% at 50% 0%, rgba(214, 178, 94, 0.22), transparent 70%), #07070a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 7em 4em 5em;
+  box-sizing: border-box;
+  color: #f4efe3;
+}
+.dp-name {
+  font: 400 8em/1.1 'Suez One', serif;
+  background: linear-gradient(180deg, #fbeec3, #e2bf6d 45%, #b3862f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  white-space: nowrap;
+}
+.dp-ring { width: 20em; height: 20em; border-radius: 50%; border: 0.3em solid #d6b25e; margin-top: 3em; box-shadow: 0 0 5em rgba(214, 178, 94, 0.3); }
+.dp-line { font-size: 3em; font-weight: 300; margin-top: auto; }
+.dp-btn { margin-top: 1.2em; font: 700 2.6em 'Heebo', sans-serif; padding: 0.5em 3em; border-radius: 99em; color: #1a1305; background: linear-gradient(180deg, #f8e3a6, #d6b25e 52%, #a97c2a); }
+
+/* הדשבורד מעצב כל `h1` שבתוכו (`.admin h1`), והכלל הזה חזק יותר ממחלקה
+   בודדת. בלי החיזוק כאן הקוביות בתצוגה המקדימה יצאו בגודל של כותרת
+   דשבורד ולא בקנה המידה של התצוגה. */
+.nw h1.nw-blocks { font-size: 1em; margin: 0; }
+.nw h1.nw-name {
+  font-family: 'Bellefair', 'Frank Ruhl Libre', serif;
+  font-weight: 400;
+  line-height: 1.02;
+  margin: 0.12em 0 0;
+  color: var(--nw-ink);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+/* במסכי הבחירה כפתור «חזרה» יושב בפינה העליונה - החבל יורד מעט כדי לא להיכנס מתחתיו */
+.nw-choice .nw-clothesline { top: 4.4em; }
+.nw-choice.nw-garland { padding-top: 13.5em; }

@@ -30,8 +30,10 @@ import {
   DEFAULT_BRIT,
   DEFAULT_BRIT_BLESSING,
   DEFAULT_BRIT_INTRO,
+  DEFAULT_BRIT_INVITE,
+  DEFAULT_BRIT_OPEN,
 } from '../lib/britQuestions';
-import { displayName, eventTypeOf, isBritType } from '../lib/eventType';
+import { britWelcomeTexts, displayName, eventTypeOf, isBritType } from '../lib/eventType';
 import { downscaleImage } from '../lib/image';
 import { csvToQuestions, templateCsv } from '../lib/csv';
 import { recordingStore } from '../lib/storage';
@@ -65,16 +67,18 @@ import {
   type CameraErrorInfo,
 } from '../lib/recorder';
 import { createAudioContext } from '../lib/micLevel';
+import { NurseryDefs } from '../components/NurseryArt';
+import WelcomeNursery from './WelcomeNursery';
 import QuestionEditor from '../components/QuestionEditor';
 import PinScreen from './PinScreen';
 
 /**
- * גודל מרבי לארכיון בודד — **תלוי מכשיר**.
+ * גודל מרבי לארכיון בודד - **תלוי מכשיר**.
  *
  * הפיצול נועד ל-iOS: תוסף השיתוף שם מוגבל בזיכרון, וכישלון באמצע ערב יקר.
  * אבל על **מחשב** הוא גרם נזק אמיתי: אירוע אחד התפצל ל-4 קבצים, והדפדפן
  * חוסם הורדות אוטומטיות רצופות (ההרשאה «אתר זה מבקש להוריד כמה קבצים»).
- * התוצאה — ירד `part1of4` בלבד, כלומר **רבע מהאירוע**, בלי שום שגיאה.
+ * התוצאה - ירד `part1of4` בלבד, כלומר **רבע מהאירוע**, בלי שום שגיאה.
  *
  * קובץ יחיד עוקף את ההרשאה הזו לגמרי. הוא גם לא יקר יותר בזיכרון:
  * `buildZip` מחזיר Blob שמצביע על ה-blobs המקוריים ולא מעתיק אותם.
@@ -169,14 +173,14 @@ function uploadFixSteps(code: string): string[] {
   if (c.includes('unauthorized')) {
     return [
       'כללי ה-Storage חוסמים את ההעלאה',
-      'בקונסול Firebase → Storage → Rules — לוודא ש-create מותר למשתמש מאומת',
+      'בקונסול Firebase → Storage → Rules - לוודא ש-create מותר למשתמש מאומת',
       'ההקלטות במכשיר בטוחות. אל תמחקו כלום עד שהגיבוי חוזר לעבוד',
     ];
   }
   if (c.includes('unauthenticated')) {
     return [
       'ההתחברות ל-Firebase נכשלה',
-      'בקונסול Firebase → Authentication — לוודא ש-Anonymous מופעל',
+      'בקונסול Firebase → Authentication - לוודא ש-Anonymous מופעל',
       'רעננו את הדף אחרי התיקון',
     ];
   }
@@ -184,18 +188,18 @@ function uploadFixSteps(code: string): string[] {
     return [
       'חרגתם ממכסת האחסון או מהתקציב בענן',
       'בדקו את מצב החיוב ב-Google Cloud',
-      'ההקלטות במכשיר בטוחות — אל תמחקו אותן',
+      'ההקלטות במכשיר בטוחות - אל תמחקו אותן',
     ];
   }
   if (c.includes('timeout') || c.includes('retry') || c.includes('network')) {
     return [
       'הרשת איטית או מנותקת',
-      'בדקו חיבור — ההעלאה מתחדשת לבד כשהרשת חוזרת',
+      'בדקו חיבור - ההעלאה מתחדשת לבד כשהרשת חוזרת',
       'אין צורך לעשות כלום חוץ מלוודא שהאייפד מחובר',
     ];
   }
   return [
-    'רעננו את הדף — התור מתחדש אוטומטית',
+    'רעננו את הדף - התור מתחדש אוטומטית',
     'ודאו שהאייפד מחובר לאינטרנט',
     'ההקלטות במכשיר בטוחות. אל תמחקו כלום כל עוד הגיבוי לא הושלם',
   ];
@@ -216,15 +220,15 @@ function cloudFixSteps(msg: string): string[] {
   }
   if (m.includes('CORS')) {
     return [
-      'צפייה והורדה בודדת עובדות — רק אריזת ZIP חסומה',
+      'צפייה והורדה בודדת עובדות - רק אריזת ZIP חסומה',
       'נדרשת הגדרת CORS על ה-bucket (מ-Cloud Shell בקונסול)',
       'לחלופין: להוריד את הסרטונים אחד-אחד',
     ];
   }
   if (m.includes('לא הסתיימה בזמן')) {
-    return ['לחצו «רענן»', 'בדקו את חיבור האינטרנט', 'אם חוזר — נסו מהמחשב במקום מהאייפד'];
+    return ['לחצו «רענן»', 'בדקו את חיבור האינטרנט', 'אם חוזר - נסו מהמחשב במקום מהאייפד'];
   }
-  return ['לחצו «רענן»', 'בדקו חיבור לאינטרנט', 'אם חוזר — בדקו הרשאות Storage בקונסול'];
+  return ['לחצו «רענן»', 'בדקו חיבור לאינטרנט', 'אם חוזר - בדקו הרשאות Storage בקונסול'];
 }
 
 const UPLOAD_BADGE: Record<string, { label: string; cls: string }> = {
@@ -237,7 +241,7 @@ const UPLOAD_BADGE: Record<string, { label: string; cls: string }> = {
 /**
  * פריטי התפריט, לפי תדירות השימוש.
  *
- * הדשבורד גדל לדף אחד ארוך, וכל פיצ'ר חדש דחף משהו מתחת לקו הגלילה — הארכיונים
+ * הדשבורד גדל לדף אחד ארוך, וכל פיצ'ר חדש דחף משהו מתחת לקו הגלילה - הארכיונים
  * ישבו ~1,100px למטה ונראו כאילו נעלמו. תפריט מנתק את המיקום מהאורך: כל דבר
  * הוא הקלקה אחת, גם כשייווספו עוד מסכים.
  */
@@ -278,7 +282,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
    *
    * למה זה נדרש: אירוע של 25 הקלטות שוקל כ-2.9 ג"ב, ולא הייתה שום דרך
    * לדעת **לפני** האירוע אם יש מקום. כשהאחסון נגמר באמצע ערב ההקלטה
-   * נכשלת, והאורח מקבל «לא הצלחנו לשמור» — כשל שאפשר למנוע בבדיקה אחת.
+   * נכשלת, והאורח מקבל «לא הצלחנו לשמור» - כשל שאפשר למנוע בבדיקה אחת.
    */
   const [storageInfo, setStorageInfo] = useState<{
     usage: number;
@@ -289,7 +293,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
   const [cloudDeleteTarget, setCloudDeleteTarget] = useState<CloudEvent | null>(null);
   /**
    * אריזת ZIP דורשת CORS על ה-bucket, ואי אפשר לדעת מראש אם הוא מוגדר.
-   * לכן הכפתור פעיל עד שניסיון אמיתי נכשל — ואז הוא מושבת עם הסבר, במקום
+   * לכן הכפתור פעיל עד שניסיון אמיתי נכשל - ואז הוא מושבת עם הסבר, במקום
    * להישאר כפתור שנלחץ ולא קורה כלום.
    */
   const [zipAvailable, setZipAvailable] = useState(true);
@@ -322,14 +326,14 @@ export default function Admin({ config, onSave, onExit }: Props) {
   };
   const [now, setNow] = useState(Date.now());
   const [showPrevEvents, setShowPrevEvents] = useState(false);
-  /** פריט התפריט הפעיל. «מסך ראשי» כברירת מחדל — זה מה שהעובד צריך. */
+  /** פריט התפריט הפעיל. «מסך ראשי» כברירת מחדל - זה מה שהעובד צריך. */
   const [nav, setNav] = useState<NavKey>('main');
-  /** בנק השאלות המלא מכווץ כברירת מחדל — הוא ארוך במאות שורות */
+  /** בנק השאלות המלא מכווץ כברירת מחדל - הוא ארוך במאות שורות */
   const [bankOpen, setBankOpen] = useState(false);
-  /** אישור פתיחת אירוע כשהמצלמה לא נבדקה — **מזהיר, לא חוסם** */
+  /** אישור פתיחת אירוע כשהמצלמה לא נבדקה - **מזהיר, לא חוסם** */
   const [confirmStart, setConfirmStart] = useState(false);
   /**
-   * שער הקוד ל«הגדרות». נפתח פעם אחת לכל כניסה לדשבורד, ולא בכל מעבר בתפריט —
+   * שער הקוד ל«הגדרות». נפתח פעם אחת לכל כניסה לדשבורד, ולא בכל מעבר בתפריט -
    * מסך שדורש קוד בכל הקלקה הוא מסך שמפסיקים להיכנס אליו.
    */
   const [settingsUnlocked, setSettingsUnlocked] = useState(false);
@@ -337,7 +341,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
   const [recordingsError, setRecordingsError] = useState('');
 
   useEffect(() => {
-    // `estimate()` לא נתמך בכל דפדפן — נכשל בשקט ופשוט לא מציג את השורה
+    // `estimate()` לא נתמך בכל דפדפן - נכשל בשקט ופשוט לא מציג את השורה
     navigator.storage
       ?.estimate?.()
       .then((e) => {
@@ -355,7 +359,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
 
   const framePreviewRef = useRef<HTMLCanvasElement>(null);
 
-  /** מעבר בין פריטי התפריט מחזיר את הגלילה לראש — אחרת נוחתים באמצע מסך חדש */
+  /** מעבר בין פריטי התפריט מחזיר את הגלילה לראש - אחרת נוחתים באמצע מסך חדש */
   const goto = (key: NavKey) => {
     setNav(key);
     bodyRef.current?.scrollTo({ top: 0 });
@@ -365,7 +369,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
    * תצוגה מקדימה של מה שייצרב לסרטון.
    *
    * משתמשת **באותן פונקציות** שהמקליט משתמש בהן (`drawVideoFrame`/
-   * `drawVideoStamp`) ולא בחיקוי שלהן — חיקוי היה מתנתק מהמציאות בשינוי
+   * `drawVideoStamp`) ולא בחיקוי שלהן - חיקוי היה מתנתק מהמציאות בשינוי
    * הראשון, ואז המפעיל היה מאשר מסגרת אחת ומקבל אחרת. וזה נצרב לתמיד.
    */
   const previewStampName = displayName(draft);
@@ -387,7 +391,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
     const paint = (photo?: HTMLImageElement) => {
       ctx.clearRect(0, 0, w, h);
       if (photo) {
-        // cover — בדיוק כמו drawLoop, כדי שהיחס בתצוגה יהיה אמיתי
+        // cover - בדיוק כמו drawLoop, כדי שהיחס בתצוגה יהיה אמיתי
         const va = photo.width / photo.height;
         const ca = w / h;
         let sw = photo.width;
@@ -403,7 +407,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         }
         ctx.drawImage(photo, sx, sy, sw, sh, 0, 0, w, h);
       } else {
-        // בלי תמונת זוג — רקע ניטרלי שמראה את המסגרת על בהיר וכהה גם יחד
+        // בלי תמונת זוג - רקע ניטרלי שמראה את המסגרת על בהיר וכהה גם יחד
         const g = ctx.createLinearGradient(0, 0, w, h);
         g.addColorStop(0, '#6b6f76');
         g.addColorStop(0.5, '#3a3d42');
@@ -465,8 +469,8 @@ export default function Admin({ config, onSave, onExit }: Props) {
         console.error('list recordings failed', e);
         setRecordingsError(
           String(e).includes('timeout')
-            ? 'קריאת ההקלטות מהמכשיר לא הסתיימה. ההקלטות לא נמחקו — נסו לרענן.'
-            : 'לא הצלחנו לקרוא את ההקלטות מהמכשיר. הן לא נמחקו — נסו לרענן.',
+            ? 'קריאת ההקלטות מהמכשיר לא הסתיימה. ההקלטות לא נמחקו - נסו לרענן.'
+            : 'לא הצלחנו לקרוא את ההקלטות מהמכשיר. הן לא נמחקו - נסו לרענן.',
         );
         setRecordingsLoaded(true);
       });
@@ -511,11 +515,11 @@ export default function Admin({ config, onSave, onExit }: Props) {
    *
    * **הבתים עוברים דרך זיכרון הדפדפן**, ולכן אירוע גדול על אייפד עלול להפיל
    * את הטאב. `splitBySize` הקיים חותך לחלקים, והאזהרה למטה מכוונת את הפעולה
-   * למחשב — שם ממילא נוח יותר לשלוח לזוג.
+   * למחשב - שם ממילא נוח יותר לשלוח לזוג.
    */
   const downloadCloudEvent = async (ev: CloudEvent) => {
     if (IS_IOS && ev.totalBytes > 400 * 1024 * 1024) {
-      flash('אירוע גדול — עדיף להוריד מהמחשב');
+      flash('אירוע גדול - עדיף להוריד מהמחשב');
     }
     setCloudBusy(true);
     setCloudError('');
@@ -524,7 +528,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
       for (let i = 0; i < ev.files.length; i++) {
         setCloudStatus(`מוריד ${i + 1} מתוך ${ev.files.length}…`);
         const raw = await downloadCloudFile(ev.files[i]);
-        // אותו תיקון כמו בייצוא מהמכשיר — ראו `repairSampleDurations`
+        // אותו תיקון כמו בייצוא מהמכשיר - ראו `repairSampleDurations`
         const rep = await repairSampleDurations(raw);
         entries.push({ name: ev.files[i].name, blob: rep.blob });
       }
@@ -587,7 +591,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
       try {
         const url = await downscaleImage(file, { maxDim: 600, mime: 'image/png' });
         setDraft((d) => ({ ...d, logoDataUrl: url }));
-        flash('לוגו נטען — לחצו "שמור"');
+        flash('לוגו נטען - לחצו "שמור"');
       } catch {
         flash('שגיאה בטעינת הלוגו');
       }
@@ -605,7 +609,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
           quality: 0.85,
         });
         setDraft((d) => ({ ...d, couplePhotoDataUrl: url }));
-        flash('תמונת זוג נטענה — לחצו "שמור"');
+        flash('תמונת זוג נטענה - לחצו "שמור"');
       } catch {
         flash('שגיאה בטעינת התמונה');
       }
@@ -621,7 +625,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
       flash(msg);
     } catch {
       onSave(next);
-      flash('נשמר לשימוש מיידי, אך השמירה הקבועה נכשלה — נסו תמונה קטנה יותר');
+      flash('נשמר לשימוש מיידי, אך השמירה הקבועה נכשלה - נסו תמונה קטנה יותר');
     }
   };
 
@@ -644,8 +648,8 @@ export default function Admin({ config, onSave, onExit }: Props) {
    * פתיחת אירוע, דרך הצ'קליסט.
    *
    * שמות+תאריך **חוסמים** (הכפתור מושבת בלעדיהם). בדיקת המצלמה רק **מזהירה**:
-   * גייט קשיח היה תוקע את העובד בדיוק כשאורחים מחכים — למשל אם הבדיקה נכשלת
-   * רגעית — וזה גרוע מהבעיה שהוא בא למנוע.
+   * גייט קשיח היה תוקע את העובד בדיוק כשאורחים מחכים - למשל אם הבדיקה נכשלת
+   * רגעית - וזה גרוע מהבעיה שהוא בא למנוע.
    */
   const handleStartEvent = () => {
     const name = draft.eventName.trim();
@@ -662,7 +666,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
   };
 
   const confirmEndEvent = () => {
-    // מנקים שמות+תאריך בסיום — כדי שהאירוע הבא יחייב הזנה מחדש (השדות ריקים
+    // מנקים שמות+תאריך בסיום - כדי שהאירוע הבא יחייב הזנה מחדש (השדות ריקים
     // וכפתור "התחל אירוע חדש" מושבת עד שממלאים אותם שוב).
     // האירוע עצמו **נשמר בהיסטוריה** ולא נמחק, כדי שאפשר יהיה לחזור אליו.
     persistConfig(
@@ -680,12 +684,12 @@ export default function Admin({ config, onSave, onExit }: Props) {
          * ⚠️ **גם התמונה.**
          *
          * בלי זה תמונת הזוג הקודם נשארת, ומופיעה במסך הפתיחה של האירוע
-         * הבא — כלומר אורחים של זוג אחד רואים את התמונה של זוג אחר.
+         * הבא - כלומר אורחים של זוג אחד רואים את התמונה של זוג אחר.
          * השמות והתאריך כבר התאפסו כאן; התמונה פשוט נשכחה.
          */
         couplePhotoDataUrl: undefined,
       },
-      'האירוע הסתיים ✓ — אפשר לחזור אליו מהרשימה',
+      'האירוע הסתיים ✓ - אפשר לחזור אליו מהרשימה',
     );
     setShowEndModal(false);
   };
@@ -714,7 +718,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
    *
    * למה שניהם: `recoverableEvents` נגזר גם מ-`meta.eventId` של ההקלטות, ולכן
    * מחיקת הערך בלבד הייתה מחזירה את האירוע לרשימה מיד. מעבר לכך, מה שתופס
-   * מקום אמיתי הוא ההקלטות — הערך עצמו הוא כמה עשרות בתים.
+   * מקום אמיתי הוא ההקלטות - הערך עצמו הוא כמה עשרות בתים.
    *
    * **הענן לא נוגע.** Firebase הוא שכבת הגיבוי; מחיקה מקומית לא משמידה אותה.
    */
@@ -740,7 +744,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
   /**
    * בודק מצלמה ומיקרופון לפני האירוע.
    *
-   * זו הנקודה החשובה: **אין אישור קבוע לדף אינטרנט** — אבל ההרשאה מחזיקה
+   * זו הנקודה החשובה: **אין אישור קבוע לדף אינטרנט** - אבל ההרשאה מחזיקה
    * לאורך טעינת הדף. לחיצה אחת כאן בתחילת הערב מקפיצה את חלונית iOS פעם
    * אחת, וכל האורחים אחריה לא יראו אותה בכלל.
    */
@@ -762,7 +766,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
   const triggerUpload = () => {
     flash(
       navigator.onLine === false
-        ? 'אין חיבור לאינטרנט — יעלה אוטומטית כשהרשת תחזור'
+        ? 'אין חיבור לאינטרנט - יעלה אוטומטית כשהרשת תחזור'
         : 'מעלה לענן…',
     );
     void processQueue();
@@ -781,17 +785,17 @@ export default function Admin({ config, onSave, onExit }: Props) {
     try {
       const parsed = csvToQuestions(await file.text());
       if (!parsed.length) {
-        flash('לא נמצאו שאלות בקובץ — ודאו שהוא נשמר כ-CSV UTF-8');
+        flash('לא נמצאו שאלות בקובץ - ודאו שהוא נשמר כ-CSV UTF-8');
       } else {
         setDraft((d) => ({
           ...d,
           customQuestions: parsed,
           useCustomQuestions: true,
         }));
-        flash(`יובאו ${parsed.length} שאלות — לחצו "שמור"`);
+        flash(`יובאו ${parsed.length} שאלות - לחצו "שמור"`);
       }
     } catch {
-      flash('שגיאה בקריאת הקובץ — ודאו שהוא בפורמט CSV');
+      flash('שגיאה בקריאת הקובץ - ודאו שהוא בפורמט CSV');
     }
     if (csvRef.current) csvRef.current.value = '';
   };
@@ -811,7 +815,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
   const downloadRecording = async (rec: RecordingInfo) => {
     const blob = await recordingStore.get(rec.id);
     if (!blob) return;
-    // הורדה בודדת — אין הקשר של רשימה, ולכן משתמשים בשעה כמזהה ייחודי
+    // הורדה בודדת - אין הקשר של רשימה, ולכן משתמשים בשעה כמזהה ייחודי
     download(blob, filenameFor(rec, new Date(rec.meta.timestamp).getMinutes()));
   };
 
@@ -824,17 +828,17 @@ export default function Admin({ config, onSave, onExit }: Props) {
    * אורז את הקלטות האירוע לארכיוני ZIP.
    *
    * **מסונן לאירוע הפעיל.** חזרה לאירוע נועדה בדיוק כדי למשוך את הסרטונים
-   * שלו שוב — ארכיון שמכיל גם סרטונים מאירועים אחרים הוא לא גיבוי, הוא בלגן.
+   * שלו שוב - ארכיון שמכיל גם סרטונים מאירועים אחרים הוא לא גיבוי, הוא בלגן.
    * בלי אירוע פעיל אין למה לסנן, ואז נארז כל מה שבמכשיר.
    *
    * הסינון מכוון ל-`activeEvent` ולא לתצוגה: גיבוי צריך להיות צפוי, ולא
    * להשתנות לפי מתג "הצג אירועים קודמים" שמישהו שכח פתוח.
    *
-   * למה ZIP: קודם כל קובץ הורד בנפרד — 25 הקלטות = 25 דיאלוגים ב-iOS, וגם
+   * למה ZIP: קודם כל קובץ הורד בנפרד - 25 הקלטות = 25 דיאלוגים ב-iOS, וגם
    * שיתוף של 25 קבצים בבת אחת נכשל בתוסף של Drive. פריט אחד עובד.
    */
   const buildArchives = async (): Promise<File[] | null> => {
-    // עוצר את מעלה-הרקע לכל אורך האריזה — שניהם קוראים את אותם blobs
+    // עוצר את מעלה-הרקע לכל אורך האריזה - שניהם קוראים את אותם blobs
     setExportActive(true);
     try {
       return await buildArchivesInner();
@@ -854,12 +858,12 @@ export default function Admin({ config, onSave, onExit }: Props) {
     /**
      * הקלטות שלא ניתן היה לקרוא מהמכשיר.
      *
-     * ⚠️ **קודם הן פשוט דולגו בשקט** — `if (blob)` בלי `else`. המפעיל היה
+     * ⚠️ **קודם הן פשוט דולגו בשקט** - `if (blob)` בלי `else`. המפעיל היה
      * מקבל ארכיון עם 5 סרטונים במקום 6 ולא היה לו שום סימן שמשהו חסר,
      * ולא איזה סרטון. זה בדיוק סוג הכשל שמגלים חודש אחרי האירוע.
      */
     const unreadable: string[] = [];
-    /** כמה משכים פגומים תוקנו — מדווח למפעיל בסיום */
+    /** כמה משכים פגומים תוקנו - מדווח למפעיל בסיום */
     let repaired = 0;
     for (const rec of source) {
       /**
@@ -908,7 +912,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
     if (repaired > 0) console.info(`[export] תוקנו ${repaired} משכי דגימה פגומים`);
 
     const groups = splitBySize(entries, ZIP_PART_MAX_BYTES);
-    // שם האירוע בעברית נמחק בסינון ה-ASCII, ולכן החותמת כוללת גם שעה —
+    // שם האירוע בעברית נמחק בסינון ה-ASCII, ולכן החותמת כוללת גם שעה -
     // אחרת שני אירועים באותו יום היו מקבלים בדיוק אותו שם ארכיון.
     const now = new Date();
     const p = (n: number) => String(n).padStart(2, '0');
@@ -934,7 +938,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
       // eslint-disable-next-line no-await-in-loop
       const zip = await buildZip(groups[i], (pr) => {
         /**
-         * קודם הוצג «אורז חלק 3/4 — 3/4»: שני מספרים זהים שמשמעותם שונה
+         * קודם הוצג «אורז חלק 3/4 - 3/4»: שני מספרים זהים שמשמעותם שונה
          * לגמרי (חלק מתוך סך החלקים, מול סרטון מתוך סרטוני החלק). אי אפשר
          * היה לדעת מה מתקדם. עכשיו: מילים לחלק, ואחוז **רציף** שזז גם
          * באמצע סרטון של 280 מ"ב.
@@ -952,7 +956,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
     return files;
   };
 
-  /** כמה הקלטות ייכללו בייצוא — מוצג בתווית כדי שלא יהיה ספק מה נארז */
+  /** כמה הקלטות ייכללו בייצוא - מוצג בתווית כדי שלא יהיה ספק מה נארז */
   const exportCount = draft.activeEvent
     ? recordings.filter((r) => r.meta.eventId === draft.activeEvent!.id).length
     : recordings.length;
@@ -1007,20 +1011,20 @@ export default function Admin({ config, onSave, onExit }: Props) {
         /* המשתמש ביטל */
       }
     } else {
-      flash('שיתוף קבצים לא נתמך כאן — מוריד במקום');
+      flash('שיתוף קבצים לא נתמך כאן - מוריד במקום');
       await downloadAll(files);
     }
   };
 
   /**
    * מעתיק את קישורי ההורדה הישירים מהענן.
-   * לשימוש המפעיל — לא הערוץ למסירה לזוג: תעבורת Firebase מוגבלת ויקרה,
+   * לשימוש המפעיל - לא הערוץ למסירה לזוג: תעבורת Firebase מוגבלת ויקרה,
    * והמסירה עוברת דרך תיקיית Drive משותפת (ראו README).
    */
   const copyCloudLinks = async () => {
     const withUrl = recordings.filter((r) => r.remoteUrl);
     if (withUrl.length === 0) {
-      flash('אין עדיין קישורי ענן — ההעלאה טרם הסתיימה');
+      flash('אין עדיין קישורי ענן - ההעלאה טרם הסתיימה');
       return;
     }
     const text = withUrl
@@ -1030,7 +1034,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
       await navigator.clipboard.writeText(text);
       flash(`הועתקו ${withUrl.length} קישורים`);
     } catch {
-      flash('ההעתקה נכשלה — יש לאשר גישה ללוח');
+      flash('ההעתקה נכשלה - יש לאשר גישה ללוח');
     }
   };
 
@@ -1049,6 +1053,45 @@ export default function Admin({ config, onSave, onExit }: Props) {
   const depthKey = brit ? 'britDepthSettings' : 'depthSettings';
   const depthDefaults = brit ? DEFAULT_BRIT_DEPTH_SETTINGS : DEFAULT_DEPTH_SETTINGS;
   const depthNow = { ...depthDefaults, ...(draft[depthKey] ?? {}) };
+  /**
+   * הקונפיג שהתצוגות המקדימות מציירות. לפני שהוזן שם או תאריך הן היו
+   * יוצאות ריקות, ולכן חסר ממולא בדוגמה - רק לתצוגה, לא נשמר.
+   */
+  const today = new Date();
+  const previewConfig: AppConfig = {
+    ...draft,
+    babyName:
+      displayName(draft) || (eventType === 'brita' ? 'נועה' : 'איתמר'),
+    eventDate:
+      draft.activeEvent?.date ||
+      draft.eventDate ||
+      `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`,
+  };
+  const previewTexts = britWelcomeTexts(previewConfig);
+
+  /**
+   * «אחים ואחיות» במסך הקרבה. נשמר מיד ולא דרך «שמור», כי הוא נדרש גם
+   * באמצע אירוע - מפעיל שמגלה שזה ילד ראשון לא אמור לחפש כפתור שמירה.
+   */
+  const siblingsToggle = (
+    <label className="checkbox-row">
+      <input
+        type="checkbox"
+        checked={draft.britHasSiblings !== false}
+        onChange={(e) =>
+          persistConfig(
+            { ...draft, britHasSiblings: e.target.checked },
+            e.target.checked ? '«אחים ואחיות» מוצג ✓' : '«אחים ואחיות» הוסר ✓',
+          )
+        }
+      />
+      <span>
+        יש {eventType === 'brita' ? 'לה' : 'לו'} אחים או אחיות - להציג «אחים ואחיות»
+        במסך «מי אתם בשבילי»
+      </span>
+    </label>
+  );
+
   const setDepth = (patch: Partial<DepthSettings>) =>
     setDraft((d) => ({
       ...d,
@@ -1057,7 +1100,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
   const captureDiag = getCaptureDiagnostics();
   const recProgress = getRecordingProgress();
   // כל האירועים שהמכשיר מכיר: ההיסטוריה השמורה ממוזגת עם אירועים שנגזרים
-  // מההקלטות — כך אירוע ניתן לשחזור גם אם הקונפיג אבד. האירוע הפעיל נכלל
+  // מההקלטות - כך אירוע ניתן לשחזור גם אם הקונפיג אבד. האירוע הפעיל נכלל
   // ומוצג בראש, מסומן, כדי שהרשימה תשקף את המצב האמיתי במכשיר.
   const archiveList = recoverableEvents(
     [
@@ -1077,7 +1120,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
   const eventAllBackedUp = eventTotal > 0 && eventUploaded === eventTotal;
   const eventDurationMs = activeEvent ? now - activeEvent.startedAt : 0;
 
-  // כרטיס הגיבוי הראשי — מתייחס לאירוע הפעיל אם יש, אחרת לכל ההקלטות
+  // כרטיס הגיבוי הראשי - מתייחס לאירוע הפעיל אם יש, אחרת לכל ההקלטות
   const heroTotal = activeEvent ? eventTotal : recordings.length;
   const heroUploaded = activeEvent
     ? eventUploaded
@@ -1087,7 +1130,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
   // רשימת הקלטות: כברירת מחדל רק האירוע הנוכחי (לא מציגים אירועים קודמים)
   const visibleRecordings =
     activeEvent && !showPrevEvents ? eventRecs : recordings;
-  // הקלטות מאירועים קודמים שעדיין לא גובו לענן — רק אלה רלוונטיות להצגה.
+  // הקלטות מאירועים קודמים שעדיין לא גובו לענן - רק אלה רלוונטיות להצגה.
   // אם הכל מאירועים קודמים כבר בענן, אין צורך להציג אותן (מוסתר, פחות עומס).
   const prevPending = activeEvent
     ? recordings.filter(
@@ -1110,7 +1153,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
    *
    * **מנחה, לא כולא.** רק השורה הראשונה חוסמת בפועל (הכפתור מושבת בלעדיה);
    * השאר מסמנות ✓ ומקשרות למסך שבו מטפלים בהן. עובד שממהר חייב להיות מסוגל
-   * להתקדם — אירוע תקוע כשהאורחים מחכים גרוע מכל פריט שלא סומן.
+   * להתקדם - אירוע תקוע כשהאורחים מחכים גרוע מכל פריט שלא סומן.
    */
   const checklist: {
     done: boolean;
@@ -1121,7 +1164,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
     {
       done: !!draft.eventName.trim() && !!(draft.eventDate ?? '').trim(),
       label: brit ? 'שם המשפחה ותאריך האירוע' : 'שמות הזוג ותאריך האירוע',
-      hint: 'חובה — בלי זה לא ניתן לפתוח אירוע',
+      hint: 'חובה - בלי זה לא ניתן לפתוח אירוע',
       blocking: true,
     },
     {
@@ -1161,7 +1204,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
           ))}
 
           {/*
-            גרסה — מתחת לפריט האחרון בתפריט.
+            גרסה - מתחת לפריט האחרון בתפריט.
             קיים כדי שאפשר יהיה לוודא **על האייפד עצמו** איזו גרסה רצה,
             בלי מחשב. חותמת הבנייה מבדילה בין שתי בניות של אותה גרסה,
             וזה בדיוק מה שהיה חסר כשלא היה ברור אם פריסה תפסה.
@@ -1230,7 +1273,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
               */}
               <div className="meta event-stats">
                 {recordingsError ? (
-                  <span className="stat-warn">🎥 לא ניתן לקרוא כרגע — ראו למטה</span>
+                  <span className="stat-warn">🎥 לא ניתן לקרוא כרגע - ראו למטה</span>
                 ) : !recordingsLoaded ? (
                   <span>🎥 טוען…</span>
                 ) : (
@@ -1250,7 +1293,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
               ■ סיים אירוע
             </button>
             {/*
-              שם התינוק/ת ניתן לעדכון **באמצע האירוע** — בברית הוא מוכרז רק
+              שם התינוק/ת ניתן לעדכון **באמצע האירוע** - בברית הוא מוכרז רק
               בטקס, כשהעמדה כבר פתוחה. נשמר מיד, בלי לגעת במזהה האירוע.
             */}
             {brit && (
@@ -1276,13 +1319,14 @@ export default function Admin({ config, onSave, onExit }: Props) {
                     עדכן שם
                   </button>
                 </div>
+                {siblingsToggle}
               </div>
             )}
           </div>
         ) : (
           <>
             <p className="step-hint" style={{ marginBottom: 12 }}>
-              הגדירו שמות ותאריך כדי לפתוח את העמדה. עד שמתחילים אירוע — מסך
+              הגדירו שמות ותאריך כדי לפתוח את העמדה. עד שמתחילים אירוע - מסך
               הפתיחה סגור לאורחים.
             </p>
             <div className="field">
@@ -1295,7 +1339,12 @@ export default function Admin({ config, onSave, onExit }: Props) {
                       (draft.eventType ?? 'wedding') === opt.value ? 'selected' : ''
                     }`}
                     onClick={() =>
-                      setDraft((d) => ({ ...d, eventType: opt.value as EventType }))
+                      // נשמר מיד: הדשבורד עובר לבהיר בברית ולכהה בחתונה,
+                      // והמעבר צריך להיראות ברגע הבחירה ולא אחרי «שמור»
+                      persistConfig(
+                        { ...draft, eventType: opt.value as EventType },
+                        `סוג האירוע: ${opt.label}`,
+                      )
                     }
                   >
                     <span className="orient-label">{opt.label}</span>
@@ -1362,8 +1411,9 @@ export default function Admin({ config, onSave, onExit }: Props) {
                   }
                 />
                 <span className="step-hint">
-                  עד שממלאים — מסך הפתיחה מציג את שם המשפחה.
+                  עד שממלאים - מסך הפתיחה מציג את שם המשפחה.
                 </span>
+                {siblingsToggle}
               </div>
             )}
             <button
@@ -1382,7 +1432,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         const free = Math.max(0, storageInfo.quota - storageInfo.usage);
         const gb = (b: number) => (b / 1073741824).toFixed(2);
         /**
-         * גודל הקלטה ממוצע — נמדד מההקלטות שבמכשיר, ולא מקובע.
+         * גודל הקלטה ממוצע - נמדד מההקלטות שבמכשיר, ולא מקובע.
          * נפילה ל-120 מ"ב כשאין עדיין הקלטות (נמדד בשדה: 117 מ"ב לממוצע).
          */
         /**
@@ -1410,7 +1460,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
             <div className="meta">
               {tight ? '⚠️ ' : '✓ '}
               מספיק לעוד <strong>~{room} הקלטות</strong> בקצב הנוכחי
-              {tight && ' — מומלץ למחוק הקלטות שכבר גובו בענן'}
+              {tight && ' - מומלץ למחוק הקלטות שכבר גובו בענן'}
             </div>
           </div>
         );
@@ -1420,7 +1470,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
       <div className="admin-section camera-check">
         <h2>בדיקת מצלמה ומיקרופון</h2>
         <p className="step-hint" style={{ marginBottom: 12 }}>
-          להריץ פעם אחת בתחילת הערב. חלונית ההרשאה של iOS תקפוץ כאן — וכל
+          להריץ פעם אחת בתחילת הערב. חלונית ההרשאה של iOS תקפוץ כאן - וכל
           האורחים אחריה לא יראו אותה. <b>אין אישור קבוע לדף אינטרנט</b>,
           וההרשאה מחזיקה עד לסגירת האפליקציה.
         </p>
@@ -1456,7 +1506,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
               'מיקרופון חיצוני? ודאו שהוא מחובר עד הסוף, דלוק, ולא על השתק',
               'נתקו וחברו אותו מחדש, ואז לחצו שוב «בדוק מצלמה ומיקרופון»',
               'בלי מיקרופון חיצוני: סגרו את האפליקציה לגמרי ופתחו מחדש',
-              'לפני שפותחים אירוע — הקליטו ברכת בדיקה והאזינו לה',
+              'לפני שפותחים אירוע - הקליטו ברכת בדיקה והאזינו לה',
             ]}
           />
         )}
@@ -1468,11 +1518,11 @@ export default function Admin({ config, onSave, onExit }: Props) {
         )}
         {cameraCheck.state === 'fail' && cameraCheck.info.isPermission && (
           <p className="step-hint camera-settings-hint">
-            אם החלונית לא קופצת — הגדרות → ספארי → מצלמה ומיקרופון → «אפשר»
+            אם החלונית לא קופצת - הגדרות → ספארי → מצלמה ומיקרופון → «אפשר»
           </p>
         )}
 
-        {/* אבחון איכות: מה המצלמה באמת נותנת על המכשיר הזה. יושב כאן בכוונה —
+        {/* אבחון איכות: מה המצלמה באמת נותנת על המכשיר הזה. יושב כאן בכוונה -
             בודקים שהמצלמה עובדת, ומיד רואים מה היא מספקת בפועל. */}
         {captureDiag && (
           <div className="capture-diag">
@@ -1482,7 +1532,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
             </div>
             <div className="meta">
               {captureDiag.camera.startsWith('1080')
-                ? '✓ המצלמה נותנת פורטרט מלא — אין חיתוך צדדים ואין מתיחה.'
+                ? '✓ המצלמה נותנת פורטרט מלא - אין חיתוך צדדים ואין מתיחה.'
                 : 'המצלמה מחזירה לרוחב, ולכן הצדדים נחתכים. עדיין 1080p, אך פחות פיקסלים אמיתיים בפריים.'}
             </div>
           </div>
@@ -1516,14 +1566,14 @@ export default function Admin({ config, onSave, onExit }: Props) {
             <div className="meta">
               {recProgress.completed
                 ? '✓ הסתיימה כשורה ונשמרה.'
-                : '⚠️ לא הגיעה לסיום — הטאב כנראה נפל או ההקלטה נקטעה. זה הנפח שבו זה קרה.'}
+                : '⚠️ לא הגיעה לסיום - הטאב כנראה נפל או ההקלטה נקטעה. זה הנפח שבו זה קרה.'}
             </div>
             {!recProgress.completed && (
               <FixHint
                 steps={[
-                  'בדקו ברשימת ההקלטות אם הקובץ נשמר בכל זאת — לרוב כן',
+                  'בדקו ברשימת ההקלטות אם הקובץ נשמר בכל זאת - לרוב כן',
                   'לפני האורח הבא: סגרו את האפליקציה ופתחו מחדש, כדי לשחרר זיכרון',
-                  'אם זה חוזר על הקלטות ארוכות — קצרו את זמן ההקלטה',
+                  'אם זה חוזר על הקלטות ארוכות - קצרו את זמן ההקלטה',
                 ]}
               />
             )}
@@ -1531,19 +1581,19 @@ export default function Admin({ config, onSave, onExit }: Props) {
         )}
       </div>
 
-      {/* ארכיון שיצא חסר — חייב להיאמר, ולא להישאר בקונסול */}
+      {/* ארכיון שיצא חסר - חייב להיאמר, ולא להישאר בקונסול */}
       {exportWarning.length > 0 && (
         <div className="admin-section storage-read-error">
           <h2>⚠️ הארכיון יצא חסר</h2>
           <p className="step-hint">
-            <b>{exportWarning.length} הקלטות לא נכללו</b> — לא הצלחנו לקרוא אותן
+            <b>{exportWarning.length} הקלטות לא נכללו</b> - לא הצלחנו לקרוא אותן
             מהמכשיר. אל תשלחו את הארכיון לזוג לפני שתבדקו אותן בארכיון הענן.
           </p>
           <FixHint
             steps={[
               'פתחו «ארכיון מנהל» ובדקו אם ההקלטות החסרות נמצאות בענן',
-              'אם הן בענן — הורידו אותן משם, הארכיון שלכן תקין',
-              'אם הן לא בענן — אל תמחקו את האירוע מהמכשיר בשום אופן',
+              'אם הן בענן - הורידו אותן משם, הארכיון שלכן תקין',
+              'אם הן לא בענן - אל תמחקו את האירוע מהמכשיר בשום אופן',
               'נסו «ייצוא» שוב אחרי רענון הדף',
             ]}
           />
@@ -1558,7 +1608,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         </div>
       )}
 
-      {/* קריאת ההקלטות נכשלה — הדבר הכי חשוב להגיד, ובאדום */}
+      {/* קריאת ההקלטות נכשלה - הדבר הכי חשוב להגיד, ובאדום */}
       {nav === 'main' && recordingsError && (
         <div className="admin-section storage-read-error">
           <h2>⚠️ לא הצלחנו לקרוא את ההקלטות</h2>
@@ -1567,10 +1617,10 @@ export default function Admin({ config, onSave, onExit }: Props) {
           </p>
           <FixHint
             steps={[
-              'לחצו «רענן» — ברוב המקרים זה נפתר מיד',
-              'סגרו טאבים אחרים של האפליקציה — טאב נוסף חוסם את מסד הנתונים',
+              'לחצו «רענן» - ברוב המקרים זה נפתר מיד',
+              'סגרו טאבים אחרים של האפליקציה - טאב נוסף חוסם את מסד הנתונים',
               'אם לא עזר: סגרו את האפליקציה לגמרי ופתחו מחדש',
-              'אל תמחקו כלום ואל תסיימו את האירוע עד שהרשימה נטענת — ההקלטות במקומן',
+              'אל תמחקו כלום ואל תסיימו את האירוע עד שהרשימה נטענת - ההקלטות במקומן',
             ]}
           />
           <button className="btn secondary" onClick={refreshRecordings}>
@@ -1596,7 +1646,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
             {heroTotal === 0
               ? 'אין עדיין סרטונים'
               : heroAllUp
-                ? '✓ כל הסרטונים גובו בענן — אפשר לפרק בבטחה'
+                ? '✓ כל הסרטונים גובו בענן - אפשר לפרק בבטחה'
                 : `עוד עולה לענן… (${heroTotal - heroUploaded} נותרו)`}
           </div>
           {heroTotal > heroUploaded && (
@@ -1655,7 +1705,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
               🗂 ארכיון אירועים במכשיר
             </button>
             <span className="step-hint" style={{ margin: 0 }}>
-              האירועים שצולמו כאן — חזרה לאירוע ומחיקה
+              האירועים שצולמו כאן - חזרה לאירוע ומחיקה
             </span>
           </div>
         </div>
@@ -1702,23 +1752,23 @@ export default function Admin({ config, onSave, onExit }: Props) {
       {/* ================== שאלות: כמות לכל עומק ================== */}
       {nav === 'questions' && (
       <div className="admin-section">
-        <h2>כמה שאלות בכל מסלול{brit ? ` — ${eventTypeLabel}` : ''}</h2>
+        <h2>כמה שאלות בכל מסלול{brit ? ` - ${eventTypeLabel}` : ''}</h2>
         {brit ? (
           <p className="step-hint" style={{ marginBottom: 14 }}>
             כל אורח מתחיל ב«מי אתם בשבילי» ומסיים במסר האישי. ביניהם הוא מקבל
-            שאלות <b>לפי סדר המאגר</b> — עתיד, איחול, טיפ להורים, טיפ לחיים.
+            שאלות <b>לפי סדר המאגר</b> - עתיד, איחול, טיפ להורים, טיפ לחיים.
             4 שאלות = אחת מכל נושא.
           </p>
         ) : (
           <p className="step-hint" style={{ marginBottom: 14 }}>
             באירוע הראשון חציון ההקלטות היה <b>44 שניות</b> ו-52% היו מתחת
-            ל-45 שניות — האורחים עצרו הרבה לפני 8 שאלות. אפשר לכוונן כאן בין
+            ל-45 שניות - האורחים עצרו הרבה לפני 8 שאלות. אפשר לכוונן כאן בין
             אירועים בלי גרסה חדשה.
           </p>
         )}
         <div className="depth-settings">
           <div className="field">
-            <label>«כמה שאלות» — מספר השאלות</label>
+            <label>«כמה שאלות» - מספר השאלות</label>
             <input
               type="number"
               min={1}
@@ -1737,7 +1787,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
             </span>
           </div>
           <div className="field">
-            <label>«פריסטייל» — תקרת דקות</label>
+            <label>«פריסטייל» - תקרת דקות</label>
             <input
               type="number"
               min={1}
@@ -1752,7 +1802,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
             <span className="step-hint">
               {brit
                 ? 'בפריסטייל מוצגות עד 8 שאלות (שתיים מכל נושא). מקסימום 5 דקות.'
-                : 'שם אין מכסת שאלות — הזמן הוא המגבלה. מקסימום 5 דקות.'}
+                : 'שם אין מכסת שאלות - הזמן הוא המגבלה. מקסימום 5 דקות.'}
             </span>
           </div>
         </div>
@@ -1762,16 +1812,16 @@ export default function Admin({ config, onSave, onExit }: Props) {
       {/* ================== שאלות: מסלול ברית/בריתה ================== */}
       {nav === 'questions' && brit && (
       <div className="admin-section">
-        <h2>שאלות — {eventTypeLabel}</h2>
+        <h2>שאלות - {eventTypeLabel}</h2>
         <p className="step-hint" style={{ marginBottom: 20 }}>
           השאלות כתובות <b>בקול של {eventType === 'brita' ? 'התינוקת' : 'התינוק'}</b>,
           ופונות לאורחים ברבים. כדי ששאלה תתאים גם לברית וגם לבריתה כותבים{' '}
-          <span dir="ltr">{'{בן|בת}'}</span> — החלק הראשון מוצג בברית והשני
+          <span dir="ltr">{'{בן|בת}'}</span> - החלק הראשון מוצג בברית והשני
           בבריתה.
         </p>
 
         <div className="field">
-          <label>השאלה הפותחת — תמיד ראשונה</label>
+          <label>השאלה הפותחת - תמיד ראשונה</label>
           <input
             value={draft.britIntroPrompt ?? ''}
             placeholder={DEFAULT_BRIT_INTRO}
@@ -1786,7 +1836,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         </div>
 
         <div className="field">
-          <label>המסר הסוגר — תמיד אחרון</label>
+          <label>המסר הסוגר - תמיד אחרון</label>
           <input
             value={draft.britBlessingPrompt ?? ''}
             placeholder={DEFAULT_BRIT_BLESSING}
@@ -1824,38 +1874,107 @@ export default function Admin({ config, onSave, onExit }: Props) {
       {/* ================== מסך פתיחה: עיצוב ברית/בריתה ================== */}
       {nav === 'welcome' && brit && (
       <div className="admin-section">
-        <h2>עיצוב המסכים — {eventTypeLabel}</h2>
+        <h2>עיצוב המסכים - {eventTypeLabel}</h2>
         <p className="step-hint" style={{ marginBottom: 12 }}>
           חל על המסכים שהאורח רואה לפני הצילום ואחריו. <b>מסך הצילום נשאר
           כהה</b>, והשאלה שנצרבת בסרטון לא משתנה. בשני עיצובי צבעי המים
           הצבע המשלים מתחלף לבד: כחול מאובק בברית, אפרסק בבריתה.
         </p>
-        <div className="orientation-picker">
+        {/* הפילטר והגרדיאנטים של האיורים - נדרשים לתצוגות המקדימות */}
+        <NurseryDefs />
+        <div className="design-picker">
           {BRIT_DESIGN_OPTIONS.map((opt) => (
             <button
               key={opt.value}
-              className={`orient-btn ${
+              className={`design-opt ${
                 (draft.britDesign ?? 'pram') === opt.value ? 'selected' : ''
               }`}
               onClick={() =>
-                // נשמר מיד, כמו מצב התצוגה — כדי שיציאה מהדשבורד תראה אותו
+                // נשמר מיד, כמו מצב התצוגה - כדי שיציאה מהדשבורד תראה אותו
                 persistConfig(
                   { ...draft, britDesign: opt.value as BritDesign },
                   `עיצוב «${opt.label}» ✓`,
                 )
               }
             >
+              {opt.value === 'classic' ? (
+                <span className="design-preview classic" aria-hidden>
+                  <span className="dp-name">{previewConfig.babyName}</span>
+                  <span className="dp-ring" />
+                  <span className="dp-line">{previewTexts.invite}</span>
+                  <span className="dp-btn">התחל</span>
+                </span>
+              ) : (
+                <span className="design-preview" aria-hidden>
+                  <WelcomeNursery
+                    preview
+                    config={previewConfig}
+                    design={opt.value}
+                    onStart={() => undefined}
+                  />
+                </span>
+              )}
               <span className="orient-label">{opt.label}</span>
               <span className="orient-hint">{opt.hint}</span>
             </button>
           ))}
         </div>
+        <p className="step-hint" style={{ marginTop: 10 }}>
+          התצוגה המקדימה מתעדכנת עם השם, התאריך, התמונה והטקסטים שלמטה.
+        </p>
         {(draft.britDesign ?? 'pram') !== 'classic' && (
           <p className="step-hint" style={{ marginTop: 12 }}>
             בעיצובים האלה «מצב תצוגה» וערכת הצבע שלמטה לא משפיעים על מסכי
-            האורח — רק על הדשבורד.
+            האורח - רק על הדשבורד.
           </p>
         )}
+      </div>
+      )}
+
+      {/* ================== מסך פתיחה: טקסטים של ברית/בריתה ================== */}
+      {nav === 'welcome' && brit && (
+      <div className="admin-section">
+        <h2>הטקסטים במסך הפתיחה</h2>
+        <div className="field">
+          <label>הכותרת</label>
+          <input
+            value={draft.britInviteText ?? DEFAULT_BRIT_INVITE}
+            onChange={(e) =>
+              setDraft((d) => ({ ...d, britInviteText: e.target.value }))
+            }
+          />
+        </div>
+        <div className="field">
+          <label>השורה הקטנה שמתחתיה</label>
+          <input
+            value={draft.britOpenText ?? DEFAULT_BRIT_OPEN}
+            onChange={(e) =>
+              setDraft((d) => ({ ...d, britOpenText: e.target.value }))
+            }
+          />
+          <p className="step-hint">
+            שדה ריק = השורה לא מוצגת. <span dir="ltr">{'{שנה}'}</span> מתחלף
+            בשנת בר/בת המצווה (מחושבת מתאריך האירוע), ו-
+            <span dir="ltr">{'{בבר|בבת}'}</span> לפי ברית או בריתה.
+          </p>
+        </div>
+        <div className="admin-toolbar" style={{ margin: '4px 0 0' }}>
+          <button
+            className="mini-btn outline"
+            onClick={() =>
+              setDraft((d) => ({
+                ...d,
+                britInviteText: DEFAULT_BRIT_INVITE,
+                britOpenText: DEFAULT_BRIT_OPEN,
+              }))
+            }
+          >
+            ↺ החזר לנוסח המקורי
+          </button>
+        </div>
+        <p className="step-hint" style={{ marginTop: 10 }}>
+          לחצו «שמור» למעלה כדי שהשינוי יגיע למסך האורחים.
+        </p>
       </div>
       )}
 
@@ -1864,7 +1983,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
       <div className="admin-section">
         <h2>מצב תצוגה</h2>
         <p className="step-hint" style={{ marginBottom: 12 }}>
-          משפיע על מסכי האורח ועל הדשבורד. <b>מסך הצילום נשאר כהה תמיד</b> —
+          משפיע על מסכי האורח ועל הדשבורד. <b>מסך הצילום נשאר כהה תמיד</b> -
           שם הצילום עצמו הוא הרקע. גם הכיתוב הנצרב בסרטון לא משתנה.
         </p>
         <div className="orientation-picker">
@@ -1896,7 +2015,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         <h2>🎬 עיצוב הסרטון</h2>
         <p className="step-hint burn-warn">
           ⚠️ <b>נצרב לתוך קובץ הווידאו ובלתי הפיך.</b> מה שמופיע כאן יופיע גם
-          על המסך שהאורח רואה — זה אותו קנבס. סרטונים שכבר צולמו לא ישתנו.
+          על המסך שהאורח רואה - זה אותו קנבס. סרטונים שכבר צולמו לא ישתנו.
         </p>
 
         <div className="video-style-row">
@@ -1957,7 +2076,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
                 ))}
               </div>
               <p className="step-hint">
-                הגובה קבוע <b>מעל שורת הכפתורים</b> — שלוש הפינות התחתונות
+                הגובה קבוע <b>מעל שורת הכפתורים</b> - שלוש הפינות התחתונות
                 תפוסות על המסך, וחותמת מתחתן הייתה נחבאת מאחורי כפתור.
               </p>
             </div>
@@ -1976,7 +2095,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
       <div className="admin-section">
         <h2>קודי גישה</h2>
         <div className="field">
-          <label>קוד ניהול (PIN) — לכניסה לדשבורד</label>
+          <label>קוד ניהול (PIN) - לכניסה לדשבורד</label>
           <input
             inputMode="numeric"
             placeholder="למשל 1234 (ריק = ללא קוד)"
@@ -2004,7 +2123,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
           />
         </div>
         <div className="field">
-          <label>קוד ארכיון המנהל — כל המכשירים</label>
+          <label>קוד ארכיון המנהל - כל המכשירים</label>
           <input
             inputMode="numeric"
             placeholder="0000"
@@ -2018,7 +2137,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
           />
           <p className="step-hint">
             הקוד הזה שומר גם על המסך הנוכחי. <b>אם תשכח אותו לא תוכל להיכנס
-            להגדרות</b> — השחזור היחיד הוא מחיקת נתוני האתר במכשיר.
+            להגדרות</b> - השחזור היחיד הוא מחיקת נתוני האתר במכשיר.
           </p>
         </div>
       </div>
@@ -2029,7 +2148,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
       <div className="admin-section">
         <h2>ארכיון אירועים - מנהל</h2>
         <p className="step-hint" style={{ marginBottom: 16 }}>
-          כל האירועים מכל המכשירים, ישירות מהענן — עם הורדת ZIP לשליחה לזוג
+          כל האירועים מכל המכשירים, ישירות מהענן - עם הורדת ZIP לשליחה לזוג
           ומחיקה לצמיתות.
         </p>
         <button
@@ -2051,7 +2170,9 @@ export default function Admin({ config, onSave, onExit }: Props) {
 
         <div className="upload-grid">
           <div className="field">
-            <label>{brit ? 'תמונת התינוק/ת' : 'תמונת הזוג'} (מוצגת במרכז)</label>
+            <label>
+              {brit ? 'תמונת התינוק/ת (לא חובה - בלי תמונה היא פשוט לא מוצגת)' : 'תמונת הזוג (מוצגת במרכז)'}
+            </label>
             {draft.couplePhotoDataUrl && (
               <img
                 src={draft.couplePhotoDataUrl}
@@ -2148,7 +2269,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         <h2>כיוון העמדה</h2>
         <p className="step-hint" style={{ marginBottom: 12 }}>
           בוחרים לפי <b>מיקום המצלמה במכשיר</b>, כדי שהאורח יסתכל למצלמה בזמן
-          שהוא קורא את השאלה. iOS לא מאפשר לכפות סיבוב מהאפליקציה — אם המכשיר
+          שהוא קורא את השאלה. iOS לא מאפשר לכפות סיבוב מהאפליקציה - אם המכשיר
           לא בכיוון שנבחר, תוצג בקשה לסובב אותו.
         </p>
         <div className="orientation-picker">
@@ -2179,7 +2300,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         <h2>שאלות</h2>
         <p className="step-hint" style={{ marginBottom: 20 }}>
           לכל שאלה בוחרים למי היא מתאימה (לפי הקרבה שהאורח בוחר). העומק שהאורח בוחר
-          קובע כמה שאלות יוצגו — הבחירה אקראית מבין המתאימות.
+          קובע כמה שאלות יוצגו - הבחירה אקראית מבין המתאימות.
         </p>
 
         <div className="field">
@@ -2248,7 +2369,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
           <span>🌶️ שאלות ומשימות חריפות</span>
         </label>
         <p className="step-hint hardcore-warn">
-          <b>כבוי כברירת מחדל בכוונה.</b> יש כאן פריטים שעלולים לפגוע — הודעות
+          <b>כבוי כברירת מחדל בכוונה.</b> יש כאן פריטים שעלולים לפגוע - הודעות
           מבהילות לזוג, אקסים, כסף על מצלמה, ומשימות שמערבות אורחים שלא
           הסכימו להשתתף. הדליקו רק אם אתם מכירים את הקהל.
         </p>
@@ -2260,7 +2381,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
           />
         )}
 
-        {/* בנק השאלות המלא — מכווץ. הוא ארוך במאות שורות, ולכן פתוח כברירת
+        {/* בנק השאלות המלא - מכווץ. הוא ארוך במאות שורות, ולכן פתוח כברירת
             מחדל היה קובר את כל מה שמעליו. */}
         <div className={`bank-block ${bankOpen ? 'open' : ''}`}>
           <button
@@ -2345,14 +2466,14 @@ export default function Admin({ config, onSave, onExit }: Props) {
               </>
             ) : (
               <div className="backup-headline">
-                גיבוי ענן לא מוגדר עדיין — ההקלטות שמורות על המכשיר. הגדירו Firebase
+                גיבוי ענן לא מוגדר עדיין - ההקלטות שמורות על המכשיר. הגדירו Firebase
                 כדי להפעיל גיבוי אוטומטי.
               </div>
             )}
           </div>
         )}
 
-        {/* שגיאת העלאה אחרונה — לאבחון */}
+        {/* שגיאת העלאה אחרונה - לאבחון */}
         {isCloudConfigured() && failedCount > 0 && uploadErr && (
           <div className="upload-error">
             שגיאת העלאה: <code>{uploadErr}</code>
@@ -2374,7 +2495,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
           </div>
         )}
 
-        {/* מעבר לאירועים קודמים — מוצג רק אם יש הקלטות ישנות שעדיין לא גובו
+        {/* מעבר לאירועים קודמים - מוצג רק אם יש הקלטות ישנות שעדיין לא גובו
             (כשהכל מגובה אין צורך להראות אותן, פחות עומס על העובד). */}
         {activeEvent && (showPrevEvents || prevPending > 0) && (
           <button
@@ -2384,7 +2505,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
           >
             {showPrevEvents
               ? '↩ הצג רק את האירוע הנוכחי'
-              : `⚠ ${prevPending} הקלטות מאירועים קודמים לא גובו — הצג`}
+              : `⚠ ${prevPending} הקלטות מאירועים קודמים לא גובו - הצג`}
           </button>
         )}
 
@@ -2441,7 +2562,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         </div>
       </div>
 
-      {/* ---- אישור פתיחת אירוע כשהמצלמה לא נבדקה — מזהיר, לא חוסם ---- */}
+      {/* ---- אישור פתיחת אירוע כשהמצלמה לא נבדקה - מזהיר, לא חוסם ---- */}
       {confirmStart && (
         <div
           className="event-modal-overlay"
@@ -2451,10 +2572,10 @@ export default function Admin({ config, onSave, onExit }: Props) {
             <h2>המצלמה עדיין לא נבדקה</h2>
             <p className="step-hint">
               {cameraCheck.state === 'silent'
-                ? 'בבדיקה האחרונה המיקרופון לא קלט שום קול — סרטונים עלולים לצאת אילמים.'
+                ? 'בבדיקה האחרונה המיקרופון לא קלט שום קול - סרטונים עלולים לצאת אילמים.'
                 : cameraCheck.state === 'fail'
                 ? `הבדיקה האחרונה נכשלה: ${cameraCheck.info.message}`
-                : 'בדיקה אחת בתחילת הערב מקפיצה את חלונית ההרשאה כאן — כך אף אורח לא ייתקל בה באמצע צילום.'}
+                : 'בדיקה אחת בתחילת הערב מקפיצה את חלונית ההרשאה כאן - כך אף אורח לא ייתקל בה באמצע צילום.'}
             </p>
             <div className="footer">
               <button
@@ -2500,16 +2621,16 @@ export default function Admin({ config, onSave, onExit }: Props) {
               )}
             </div>
 
-            <p className="step-hint">לפני שמסיימים — עברו על הצ׳קליסט:</p>
+            <p className="step-hint">לפני שמסיימים - עברו על הצ׳קליסט:</p>
 
             <div className="checklist">
               <div className={`check-row ${eventAllBackedUp ? 'ok' : 'warn'}`}>
                 <span>
                   {!isCloudConfigured()
-                    ? '☁️ גיבוי ענן לא מוגדר — ודאו שהורדתם הכל'
+                    ? '☁️ גיבוי ענן לא מוגדר - ודאו שהורדתם הכל'
                     : eventAllBackedUp
                       ? '✓ כל הסרטונים גובו בענן'
-                      : `⚠️ עוד לא הכל עלה לענן — ${eventUploaded}/${eventTotal}`}
+                      : `⚠️ עוד לא הכל עלה לענן - ${eventUploaded}/${eventTotal}`}
                 </span>
                 {isCloudConfigured() && !eventAllBackedUp && eventTotal > 0 && (
                   <button className="mini-btn" onClick={triggerUpload}>
@@ -2555,7 +2676,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         </div>
       )}
 
-      {/* ארכיון המנהל כבר יושב מאחורי קוד ההגדרות — שער שני עם אותו קוד רק מעצבן */}
+      {/* ארכיון המנהל כבר יושב מאחורי קוד ההגדרות - שער שני עם אותו קוד רק מעצבן */}
       {cloudStep === 'list' && (
         <div className="archive-overlay">
           <div className="archive-panel">
@@ -2661,7 +2782,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
                     {eventUrls[ev.id] && (
                       <p className="step-hint cloud-files-hint">
                         לחיצה פותחת את הסרטון. לשמירה: תפריט השיתוף של הדפדפן →
-                        «שמור וידאו». <b>עובד בלי CORS</b> — בניגוד לאריזת ה-ZIP.
+                        «שמור וידאו». <b>עובד בלי CORS</b> - בניגוד לאריזת ה-ZIP.
                       </p>
                     )}
                   </div>
@@ -2672,7 +2793,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         </div>
       )}
 
-      {/* מחיקה מהענן היא בלתי הפיכה — לכן אישור מפורש, לא לחיצה אחת */}
+      {/* מחיקה מהענן היא בלתי הפיכה - לכן אישור מפורש, לא לחיצה אחת */}
       {cloudDeleteTarget && (
         <div className="event-modal-backdrop">
           <div className="event-modal">
@@ -2708,7 +2829,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         <div className="archive-overlay">
           {/*
             חובה להעביר כותרת. בלעדיה המסך נפל לברירת המחדל של PinScreen
-            («קוד מנהל» + «כדי להיכנס להגדרות») — שתי שורות שקריות כאן: השער
+            («קוד מנהל» + «כדי להיכנס להגדרות») - שתי שורות שקריות כאן: השער
             מצפה ל-`eventsPin` ולא ל-`adminPin`, והוא פותח את ארכיון המכשיר
             ולא את ההגדרות. מסך שאמר «קוד מנהל» ודחה את קוד המנהל.
             הנוסח מיושר לתווית בהגדרות, כדי שהשדה והשער ייקראו אותו דבר.
@@ -2748,7 +2869,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
                 <span className="archive-empty-icon">🗂</span>
                 <b>עדיין אין אירועים במכשיר הזה</b>
                 <span className="meta">
-                  אירוע נכנס לכאן ברגע שמסיימים אותו — ואפשר לחזור אליו בכל רגע.
+                  אירוע נכנס לכאן ברגע שמסיימים אותו - ואפשר לחזור אליו בכל רגע.
                 </span>
               </div>
             )}
@@ -2831,13 +2952,13 @@ export default function Admin({ config, onSave, onExit }: Props) {
                   )}
                   {notBackedUp > 0 ? (
                     <li className="delete-danger">
-                      ⚠️ {notBackedUp} סרטונים <b>עדיין לא עלו לענן</b> — מחיקה
+                      ⚠️ {notBackedUp} סרטונים <b>עדיין לא עלו לענן</b> - מחיקה
                       תאבד אותם לצמיתות
                     </li>
                   ) : (
                     evRecs.length > 0 && (
                       <li className="delete-safe">
-                        ✓ הגיבוי בענן לא ייפגע — הסרטונים נשארים ב-Firebase
+                        ✓ הגיבוי בענן לא ייפגע - הסרטונים נשארים ב-Firebase
                       </li>
                     )
                   )}

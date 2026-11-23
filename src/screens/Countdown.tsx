@@ -11,7 +11,7 @@ interface Props {
  *
  * באירוע הראשון נצפה שאורחים נמוכים או שעומדים רחוק מדי מגלים את זה רק
  * אחרי שההקלטה כבר רצה. עשר שניות עם תצוגה מקדימה נותנות זמן אמיתי
- * לתקן זווית ומרחק — ומי שמוכן פשוט לוחץ «דלג».
+ * לתקן זווית ומרחק - ומי שמוכן פשוט לוחץ «דלג».
  */
 const START = 10;
 
@@ -57,7 +57,7 @@ export default function Countdown({ onDone, onCancel }: Props) {
   return (
     <div className="screen countdown-screen">
       <p className="subtitle">
-        {count > 3 ? 'התארגנו — ככה תיראו בסרטון' : count > 0 ? 'חייכו! 😃' : 'מצלמים! 🎬'}
+        {count > 3 ? 'התארגנו - ככה תיראו בסרטון' : count > 0 ? 'חייכו! 😃' : 'מצלמים! 🎬'}
       </p>
 
       <div className="cd-preview">
@@ -73,12 +73,12 @@ export default function Countdown({ onDone, onCancel }: Props) {
       </div>
 
       <p className="step-hint cd-note">
-        אין צורך להקריא את השאלה — היא מופיעה בסרטון
+        אין צורך להקריא את השאלה - היא מופיעה בסרטון
       </p>
 
       <div className="cd-actions">
         <button className="btn" onClick={onDone}>
-          מוכנים — התחילו
+          מוכנים - התחילו
         </button>
         <button className="btn ghost" onClick={onCancel}>
           ביטול

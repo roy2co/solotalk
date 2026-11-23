@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 interface Props {
-  /** משתנה לפי סוג האירוע — ראו `copyFor` */
+  /** משתנה לפי סוג האירוע - ראו `copyFor` */
   message: string;
   autoResetSeconds: number;
   onReset: () => void;

@@ -1,6 +1,6 @@
 // כותב ZIP מינימלי בשיטת STORE (בלי דחיסה).
 //
-// למה בלי ספרייה ובלי דחיסה: קבצי הווידאו כבר דחוסים — DEFLATE עליהם יבזבז
+// למה בלי ספרייה ובלי דחיסה: קבצי הווידאו כבר דחוסים - DEFLATE עליהם יבזבז
 // שניות ויחסוך ~0%. STORE הוא פשוט מספיק לכתיבה ידנית, וכך אין תלות נוספת.
 //
 // למה זה לא מפוצץ את הזיכרון: הארכיון נבנה כ-`new Blob([...])` שמצביע על
@@ -21,7 +21,7 @@ const CRC_TABLE = (() => {
 })();
 
 /**
- * טבלאות «slice-by-4» — מעבדות 4 בתים בסיבוב אחד במקום אחד.
+ * טבלאות «slice-by-4» - מעבדות 4 בתים בסיבוב אחד במקום אחד.
  *
  * נמדד על קובץ אמיתי של 281 מ"ב: 717ms → 308ms, כלומר **פי 2.3**.
  * הפלט אומת כזהה לבית-בית. באייפד, שאיטי יותר, זה ההבדל בין המתנה
@@ -42,7 +42,7 @@ const CRC_TABLES = (() => {
 })();
 
 /**
- * CRC32 בזרימה — לא מחזיק את הקובץ בזיכרון.
+ * CRC32 בזרימה - לא מחזיק את הקובץ בזיכרון.
  *
  * מחזיר **גם את מספר הבתים שנקראו בפועל**, וזה קריטי: אסור לסמוך על
  * `blob.size` בכתיבת הכותרות. ראו ההסבר ב-`buildZip`.
@@ -82,7 +82,7 @@ async function crc32(
   return { crc: (crc ^ 0xffffffff) >>> 0, length };
 }
 
-/** תאריך/שעה בפורמט DOS — כדי שהקבצים בארכיון יישאו את זמן ההקלטה */
+/** תאריך/שעה בפורמט DOS - כדי שהקבצים בארכיון יישאו את זמן ההקלטה */
 function dosDateTime(ms: number): { date: number; time: number } {
   const d = new Date(ms);
   const year = Math.max(1980, d.getFullYear());
@@ -103,7 +103,7 @@ export interface ZipProgress {
   /** כמה קבצים כבר עובדו */
   done: number;
   total: number;
-  /** בתים שעובדו עד כה בחלק הזה — מאפשר אחוז שזז ברציפות */
+  /** בתים שעובדו עד כה בחלק הזה - מאפשר אחוז שזז ברציפות */
   bytes: number;
   /** סך הבתים בחלק הזה */
   totalBytes: number;
@@ -150,7 +150,7 @@ export async function buildZip(
     });
     const { date, time } = dosDateTime(entry.modified ?? Date.now());
 
-    // Local File Header — 30 בייט + שם הקובץ
+    // Local File Header - 30 בייט + שם הקובץ
     const local = new DataView(new ArrayBuffer(30));
     local.setUint32(0, 0x04034b50, true); // חתימה
     local.setUint16(4, 20, true); // גרסה נדרשת
@@ -160,7 +160,7 @@ export async function buildZip(
     local.setUint16(12, date, true);
     local.setUint32(14, crc, true);
     local.setUint32(18, size, true); // גודל דחוס
-    local.setUint32(22, size, true); // גודל מקורי — זהה ב-STORE
+    local.setUint32(22, size, true); // גודל מקורי - זהה ב-STORE
     local.setUint16(26, nameBytes.length, true);
     local.setUint16(28, 0, true); // אין extra field
 
@@ -177,7 +177,7 @@ export async function buildZip(
      */
     parts.push(new Uint8Array(local.buffer), nameBytes, entry.blob.slice(0, size));
 
-    // Central Directory Header — 46 בייט + שם הקובץ
+    // Central Directory Header - 46 בייט + שם הקובץ
     const cd = new DataView(new ArrayBuffer(46));
     cd.setUint32(0, 0x02014b50, true);
     cd.setUint16(4, 20, true); // גרסה שיצרה
@@ -198,7 +198,7 @@ export async function buildZip(
 
     offset += 30 + nameBytes.length + size;
     if (offset > ZIP64_THRESHOLD) {
-      throw new Error('הארכיון גדול מ-4 ג"ב — יש לפצל אותו לחלקים');
+      throw new Error('הארכיון גדול מ-4 ג"ב - יש לפצל אותו לחלקים');
     }
     onProgress?.({
       done: i + 1,
@@ -211,7 +211,7 @@ export async function buildZip(
   const centralSize = central.reduce((a, b) => a + b.length, 0);
   const centralOffset = offset;
 
-  // End Of Central Directory — 22 בייט
+  // End Of Central Directory - 22 בייט
   const end = new DataView(new ArrayBuffer(22));
   end.setUint32(0, 0x06054b50, true);
   end.setUint16(8, entries.length, true); // רשומות בדיסק הזה
@@ -225,7 +225,7 @@ export async function buildZip(
 
 /**
  * מחלק רשומות לקבוצות שכל אחת מתחת ל-maxBytes.
- * קובץ שגדול מהסף בעצמו מקבל קבוצה משלו — עדיף ארכיון חורג מלהשמיט אותו.
+ * קובץ שגדול מהסף בעצמו מקבל קבוצה משלו - עדיף ארכיון חורג מלהשמיט אותו.
  */
 export function splitBySize<T extends { blob: Blob }>(
   entries: T[],

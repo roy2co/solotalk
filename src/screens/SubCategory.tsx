@@ -10,7 +10,7 @@ interface Props {
   labels?: Record<string, string>;
   /**
    * להוסיף את «אחר» הכללי בסוף. `false` כשהרשימה כבר מכילה «אחר» כקרבה
-   * אמיתית — אחרת הוא היה מופיע פעמיים.
+   * אמיתית - אחרת הוא היה מופיע פעמיים.
    */
   withOther?: boolean;
   onNext: (selected: Relationship[]) => void;
@@ -37,11 +37,11 @@ export default function SubCategoryScreen({
   onNext,
   onBack,
 }: Props) {
-  // כולל את «אחר», שאינו ערך קרבה — ראו SUB_OTHER ב-types
+  // כולל את «אחר», שאינו ערך קרבה - ראו SUB_OTHER ב-types
   // **בחירה יחידה**, כמו במסך הראשי: תת-קטגוריה אחת = מאגר שאלות אחד מדויק.
   const [selected, setSelected] = useState<string | null>(null);
 
-  /** לחיצה מעבירה מיד — ראו את אותו הסבר ב-`Relationship.tsx` */
+  /** לחיצה מעבירה מיד - ראו את אותו הסבר ב-`Relationship.tsx` */
   const choose = (opt: string) => {
     setSelected(opt);
     // «אחר» רק מאשר שאין קטגוריה מדויקת, ולכן ממשיכים עם קטגוריית האב

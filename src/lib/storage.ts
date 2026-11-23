@@ -145,7 +145,7 @@ function tx<T>(
   });
 }
 
-/** פותח, מריץ, **וסוגר תמיד** — גם כשנזרקת שגיאה (אחרת נשארים חיבורים תלויים) */
+/** פותח, מריץ, **וסוגר תמיד** - גם כשנזרקת שגיאה (אחרת נשארים חיבורים תלויים) */
 async function withDB<T>(fn: (db: IDBDatabase) => Promise<T>, label = 'op'): Promise<T> {
   const db = await openDB();
   try {
@@ -245,7 +245,7 @@ export class IndexedDBStore implements RecordingStore {
           const g = store.get(id);
           g.onsuccess = () => {
             const rec = g.result as StoredRecording | undefined;
-            if (!rec) return; // אין רשומה — הטרנזקציה תיסגר וה-oncomplete יפתור
+            if (!rec) return; // אין רשומה - הטרנזקציה תיסגר וה-oncomplete יפתור
             Object.assign(rec, patch);
             /**
              * ⚠️ **מסירים את ה-blob לפני הכתיבה חזרה.**
@@ -394,7 +394,7 @@ export async function purgeOrphanChunks(): Promise<number> {
   }
 }
 
-/** מזהי הקלטות שנשארו להם מקטעים על הדיסק — כלומר הקלטות שנקטעו */
+/** מזהי הקלטות שנשארו להם מקטעים על הדיסק - כלומר הקלטות שנקטעו */
 export async function orphanChunkIds(): Promise<string[]> {
   const keys = await withDB(
     (db) =>

@@ -58,7 +58,7 @@ function scanMoof(view: DataView, base: number): Patch[] {
     );
 
     if (type === 'traf' || type === 'moof') {
-      // קופסאות מכילות — יורדים פנימה
+      // קופסאות מכילות - יורדים פנימה
       i += 8;
       continue;
     }
@@ -71,7 +71,7 @@ function scanMoof(view: DataView, base: number): Patch[] {
       if (flags & 0x4) p += 4; // first_sample_flags
 
       if (flags & 0x100) {
-        // sample_duration קיים — אוספים, מאתרים חריגים, ומתקנים לחציון
+        // sample_duration קיים - אוספים, מאתרים חריגים, ומתקנים לחציון
         const offsets: number[] = [];
         const values: number[] = [];
         let q = p;
@@ -104,7 +104,7 @@ function scanMoof(view: DataView, base: number): Patch[] {
  * מאתר ומתקן משכי דגימה פגומים.
  *
  * קורא רק את קופסאות ה-`moof` (קטנות), ולא את ה-`mdat` שמכיל את הווידאו
- * עצמו — ולכן זה זול גם על קובץ של מאות מ"ב.
+ * עצמו - ולכן זה זול גם על קובץ של מאות מ"ב.
  */
 export async function repairSampleDurations(blob: Blob): Promise<RepairResult> {
   const patches: Patch[] = [];

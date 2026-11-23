@@ -1,4 +1,4 @@
-// אתחול Firebase — מופעל רק אם הוגדרו משתני הסביבה (VITE_FIREBASE_*).
+// אתחול Firebase - מופעל רק אם הוגדרו משתני הסביבה (VITE_FIREBASE_*).
 // כל עוד לא הוגדר, שכבת הענן רדומה וההקלטות נשארות "ממתינות" מקומית.
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
@@ -28,13 +28,13 @@ export function getCloudStorage(): FirebaseStorage | null {
     app = initializeApp(cfg);
     storage = getStorage(app);
     /**
-     * ה-SDK מנסה שוב עד **שתי דקות** כברירת מחדל — גם על שגיאה קבועה כמו
+     * ה-SDK מנסה שוב עד **שתי דקות** כברירת מחדל - גם על שגיאה קבועה כמו
      * `403 Permission denied`, שלעולם לא תיפתר בניסיון נוסף. התוצאה הייתה
      * שהפאנל נתקע על «טוען מהענן…» עד שה-timeout שלנו קפץ והאשים את הרשת,
      * בזמן ש-Firebase החזיר את התשובה האמיתית תוך 87 מילישניות.
      *
      * 8 שניות מספיקות לגמגום רשת אמיתי, וקצרות מספיק כדי ששגיאת הרשאות
-     * תגיע למסך עם ההסבר הנכון — מה בדיוק להגדיר בקונסול.
+     * תגיע למסך עם ההסבר הנכון - מה בדיוק להגדיר בקונסול.
      */
     storage.maxOperationRetryTime = 8000;
     auth = getAuth(app);
@@ -42,7 +42,7 @@ export function getCloudStorage(): FirebaseStorage | null {
   return storage;
 }
 
-/** מתחבר אנונימית (נדרש לכללי האבטחה של Storage). ממוזג — פעם אחת. */
+/** מתחבר אנונימית (נדרש לכללי האבטחה של Storage). ממוזג - פעם אחת. */
 export async function ensureAuth(): Promise<void> {
   if (!isCloudConfigured()) return;
   getCloudStorage();

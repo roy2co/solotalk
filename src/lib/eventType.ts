@@ -10,6 +10,11 @@ import { DEFAULT_BRIT_DEPTH_SETTINGS, DEFAULT_DEPTH_SETTINGS } from '../types';
  * הסוג **בפועל**. האירוע הפעיל גובר על ההגדרה: הוא ננעל בפתיחה, ולכן
  * שינוי הבורר בדשבורד באמצע ערב לא מחליף לאורחים את המסלול.
  */
+// כפילות מכוונת של ברירות המחדל שב-`britQuestions.ts`: הקובץ הזה לא יכול
+// לייבא משם בלי ליצור תלות מעגלית (`britQuestions` מייבא מכאן).
+const DEFAULT_INVITE = 'השאירו לי מסר לעתיד';
+const DEFAULT_OPEN = 'ייפתח {בבר|בבת} המצווה · {שנה}';
+
 export function eventTypeOf(config: AppConfig): EventType {
   return config.activeEvent?.type ?? config.eventType ?? 'wedding';
 }
@@ -34,7 +39,7 @@ export function genderize(text: string, type: EventType): string {
 }
 
 /**
- * העיצוב של מסכי האורח. `null` בחתונה — שם אין בחירה, רק ערכת הצבע.
+ * העיצוב של מסכי האורח. `null` בחתונה - שם אין בחירה, רק ערכת הצבע.
  * `classic` בברית = אותו מראה של החתונות, ולכן הקורא מטפל בו כמו ב-`null`.
  */
 export function britDesignOf(config: AppConfig): BritDesign | null {
@@ -42,15 +47,24 @@ export function britDesignOf(config: AppConfig): BritDesign | null {
   return config.britDesign ?? 'pram';
 }
 
-/** «ייפתח בבר המצווה · 2039» — השנה שבה הסרטון אמור להיפתח */
-export function openingLine(config: AppConfig): string {
+/**
+ * שתי שורות הטקסט במסך הפתיחה של ברית/בריתה, אחרי החלפת התבניות.
+ *
+ * שתיהן נערכות בדשבורד. **מחרוזת ריקה = השורה לא מוצגת**; רק שדה שלא
+ * קיים בכלל (קונפיג ישן) נופל לברירת המחדל. `{שנה}` היא שנת בר המצווה
+ * (גיל 13) או בת המצווה (גיל 12), מחושבת מתאריך האירוע.
+ */
+export function britWelcomeTexts(config: AppConfig): { invite: string; open: string } {
   const type = eventTypeOf(config);
   const date = (config.activeEvent?.date || config.eventDate || '').trim();
-  const year = Number(date.split('/')[2]) || new Date().getFullYear();
-  // בר מצווה בגיל 13, בת מצווה בגיל 12
-  return type === 'brita'
-    ? `ייפתח בבת המצווה · ${year + 12}`
-    : `ייפתח בבר המצווה · ${year + 13}`;
+  const eventYear = Number(date.split('/')[2]) || new Date().getFullYear();
+  const openYear = String(eventYear + (type === 'brita' ? 12 : 13));
+  const fill = (text: string) =>
+    genderize(text, type).replace(/\{שנה\}/g, openYear).trim();
+  return {
+    invite: fill(config.britInviteText ?? DEFAULT_INVITE),
+    open: fill(config.britOpenText ?? DEFAULT_OPEN),
+  };
 }
 
 /** השם שמוצג לאורחים ונצרב בחותמת: שם התינוק/ת אם כבר הוכרז, אחרת שם האירוע */
@@ -69,7 +83,7 @@ export function depthSettingsOf(config: AppConfig): DepthSettings {
 
 /** הטקסטים שהאורח רואה, לפי סוג האירוע */
 export interface EventCopy {
-  /** ההזמנה הגדולה במסך הפתיחה — נקראת ממרחק */
+  /** ההזמנה הגדולה במסך הפתיחה - נקראת ממרחק */
   invite: string;
   photoGlyph: string;
   photoCaption: string;
@@ -86,18 +100,19 @@ const WEDDING_COPY: EventCopy = {
   photoCaption: 'התמונה שלכם כאן',
   relationshipTitle: 'מה הקשר שלכם לזוג?',
   relationshipSubtitle: 'בחרו את הקשר הקרוב ביותר 💛',
-  closingLabel: '🎁 לסיום — הברכה שלכם',
+  closingLabel: '🎁 לסיום - הברכה שלכם',
   thankYou: 'הברכה שלכם נשמרה. איזה כיף שהייתם חלק מהיום הזה.',
 };
 
 const BRIT_COPY: EventCopy = {
-  invite: 'השאירו לי מסר לעתיד 💌',
+  invite: 'השאירו לי מסר לעתיד',
   photoGlyph: '👶',
   photoCaption: 'התמונה שלי כאן',
   relationshipTitle: 'מי אתם בשבילי?',
-  relationshipSubtitle: 'כדי שאדע מי מדבר אליי כשאגדל 💛',
-  closingLabel: '💌 לסיום — המסר שלכם אליי',
-  thankYou: 'המסר שלכם נשמר — אראה אותו כשאגדל. תודה שבאתם לחגוג איתי!',
+  relationshipSubtitle: 'כדי שאדע מי מדבר אליי כשאגדל',
+  // ריק בכוונה: השאלה הסוגרת בברית מסבירה את עצמה, והתווית רק חזרה עליה
+  closingLabel: '',
+  thankYou: 'המסר שלכם נשמר - אראה אותו כשאגדל. תודה שבאתם לחגוג איתי!',
 };
 
 export function copyFor(type: EventType): EventCopy {

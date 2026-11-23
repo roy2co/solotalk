@@ -2,13 +2,19 @@ import type { CSSProperties } from 'react';
 import type { AppConfig, BritDesign } from '../types';
 import { formatEventDate, hebrewDate } from '../lib/event';
 import { DEFAULT_CONFIG } from '../lib/config';
-import { copyFor, displayName, eventTypeOf, openingLine } from '../lib/eventType';
+import { britWelcomeTexts, displayName } from '../lib/eventType';
 import { Garland, Pram, Sprig } from '../components/NurseryArt';
 
 interface Props {
   config: AppConfig;
   design: Exclude<BritDesign, 'classic'>;
   onStart: () => void;
+  /**
+   * תצוגה מקדימה ממוזערת בדשבורד. הכפתור הופך לטקסט בלבד (התצוגה יושבת
+   * בתוך כפתור בחירה, וכפתור בתוך כפתור אינו חוקי), והגודל נקבע ע"י
+   * העוטף במקום ע"י המסך.
+   */
+  preview?: boolean;
 }
 
 /** מעל זה השם כבר לא נכנס בשורה אחת של קוביות, וחוזרים לכתב רגיל */
@@ -22,17 +28,16 @@ const MAX_BLOCK_LETTERS = 7;
  * את שני המסכים לבלתי קריאים.
  *
  * ⚠️ **כל המידות ב-`em`**, וגודל הגופן של השורש נגזר מהמסך (ראו `.nw`
- * ב-CSS). המסך תוכנן ל-45×65 יחידות — היחס של אייפד לאורך — ולכן הוא
+ * ב-CSS). המסך תוכנן ל-45×65 יחידות - היחס של אייפד לאורך - ולכן הוא
  * נכנס בלי גלילה גם כשהאייפד שוכב: הוא פשוט מתכווץ לפי הגובה.
  */
-export default function WelcomeNursery({ config, design, onStart }: Props) {
-  const type = eventTypeOf(config);
+export default function WelcomeNursery({ config, design, onStart, preview }: Props) {
   const name = displayName(config);
   const letters = [...name];
   const date = (config.activeEvent?.date || config.eventDate || '').trim();
   const hebrew = date ? hebrewDate(date) : null;
-  // ה-💌 שייך למראה הקלאסי; כאן האיורים עושים את העבודה
-  const invite = copyFor(type).invite.replace(/\s*💌\s*$/, '');
+  const { invite, open } = britWelcomeTexts(config);
+  const photoUrl = config.couplePhotoDataUrl;
 
   // שם משפחה («משפחת כהן», לפני הכרזת השם) ארוך מדי לקוביות וכולל רווח
   const asBlocks =
@@ -49,18 +54,14 @@ export default function WelcomeNursery({ config, design, onStart }: Props) {
     fontSize: `${Math.min(4, 21 / Math.max(letters.length, 1)).toFixed(2)}em`,
   };
 
-  const photo = (
+  const photo = photoUrl && (
     <div className="nw-photo">
-      {config.couplePhotoDataUrl ? (
-        <img src={config.couplePhotoDataUrl} alt={name} />
-      ) : (
-        <span className="nw-ph-cap">התמונה שלי</span>
-      )}
+      <img src={photoUrl} alt={name} />
     </div>
   );
 
   return (
-    <div className={`nw nw-${design}`}>
+    <div className={`nw nw-${design}${preview ? ' nw-preview' : ''}`}>
       {design === 'garland' && <Garland className="nw-clothesline" />}
 
       {design === 'pram' &&
@@ -94,7 +95,17 @@ export default function WelcomeNursery({ config, design, onStart }: Props) {
         </div>
       )}
 
-      {design === 'pram' ? (
+      {/*
+        בלי תמונה אין עיגול ריק: העגלה תופסת את המרכז לבדה. מקום שמור
+        ל«התמונה שלי» נראה כמו משהו ששכחו למלא, מול אורחים.
+      */}
+      {!photo ? (
+        <div className="nw-stage solo">
+          <Sprig className="nw-sprig l" />
+          <Sprig className="nw-sprig r" />
+          <Pram className="nw-pram" />
+        </div>
+      ) : design === 'pram' ? (
         <div className="nw-stage">
           <Sprig className="nw-sprig" />
           {photo}
@@ -108,18 +119,25 @@ export default function WelcomeNursery({ config, design, onStart }: Props) {
         </div>
       )}
 
-      <p className="nw-invite">{invite}</p>
-      {/* הטקסט החופשי מהדשבורד — רק אם המפעיל כתב משהו משלו. ברירת
+      {/* קבוצה אחת שנדחפת לתחתית, כדי שהסתרת אחת השורות לא תזיז את הכפתור */}
+      <div className="nw-bottom">
+      {invite && <p className="nw-invite">{invite}</p>}
+      {/* הטקסט החופשי מהדשבורד - רק אם המפעיל כתב משהו משלו. ברירת
           המחדל מנוסחת בקול של זוג ולא שייכת למסלול הזה. */}
       {config.welcomeText?.trim() &&
         config.welcomeText !== DEFAULT_CONFIG.welcomeText && (
           <p className="nw-sub">{config.welcomeText}</p>
         )}
-      <div className="nw-open">{openingLine(config)}</div>
-      <button className="nw-cta" onClick={onStart}>
-        התחל
-      </button>
-      <div className="nw-foot">SOLOTALK · BY PARTYTALK</div>
+      {open && <div className="nw-open">{open}</div>}
+      {preview ? (
+        <span className="nw-cta">התחל</span>
+      ) : (
+        <button className="nw-cta" onClick={onStart}>
+          התחל
+        </button>
+      )}
+      <div className="nw-foot">SOLOTALK · BY PARTYTALK {new Date().getFullYear()}</div>
+      </div>
     </div>
   );
 }

@@ -15,8 +15,8 @@ export default function PinScreen({
   expectedPin,
   onSuccess,
   onCancel,
-  // «קוד ניהול» ולא «קוד מנהל» — זה השם שמופיע בשדה שקובע אותו בהגדרות
-  // («קוד ניהול (PIN) — לכניסה לדשבורד»). שני שמות לאותו קוד הם מה שגרם
+  // «קוד ניהול» ולא «קוד מנהל» - זה השם שמופיע בשדה שקובע אותו בהגדרות
+  // («קוד ניהול (PIN) - לכניסה לדשבורד»). שני שמות לאותו קוד הם מה שגרם
   // לבלבול עם קודי הארכיון. ברירת המחדל משמשת רק את שער הכניסה ב-App.
   title = 'קוד ניהול',
   subtitle = 'הזינו את הקוד שהגדרתם כדי להיכנס לדשבורד',
@@ -25,7 +25,7 @@ export default function PinScreen({
   const [error, setError] = useState(false);
   const len = (expectedPin ?? '').length || 4;
 
-  // אם לא הוגדר קוד — נכנסים ישר
+  // אם לא הוגדר קוד - נכנסים ישר
   useEffect(() => {
     if (!expectedPin) onSuccess();
   }, [expectedPin, onSuccess]);

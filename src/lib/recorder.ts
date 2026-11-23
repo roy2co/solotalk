@@ -1,8 +1,8 @@
-// מודול ההקלטה — הליבה של האפליקציה.
+// מודול ההקלטה - הליבה של האפליקציה.
 // מצייר את פריים המצלמה + טקסט השאלה על canvas, ומקליט את ה-canvas
 // כך שהשאלה "נצרבת" לתוך קובץ הוידאו עצמו.
 //
-// ⚠️ הטיפוסים נקראים `VideoFrameStyle`/`VideoStampPos` ולא `VideoFrame` —
+// ⚠️ הטיפוסים נקראים `VideoFrameStyle`/`VideoStampPos` ולא `VideoFrame` -
 // `VideoFrame` הוא טיפוס **גלובלי של WebCodecs**, ו-TypeScript תפס אותו
 // בשקט במקום שלנו. אין לשנות את השמות בחזרה.
 import type { VideoFrameStyle, VideoStampPos } from '../types';
@@ -26,7 +26,7 @@ function pickMimeType(): string {
 }
 
 /**
- * איכות ההקלטה. בלי הערכים האלה הדפדפן בוחר לבד — ספארי בחר ~1.2Mbps,
+ * איכות ההקלטה. בלי הערכים האלה הדפדפן בוחר לבד - ספארי בחר ~1.2Mbps,
  * שזו איכות נמוכה מדי לסרטון שנשלח כמזכרת.
  *
  * 4.5Mbps ל-1080x1440@30fps ≈ 84 מ"ב לסרטון של 2.5 דקות.
@@ -59,7 +59,7 @@ function saveCaptureDiagnostics(d: CaptureDiagnostics): void {
   try {
     localStorage.setItem(DIAG_KEY, JSON.stringify(d));
   } catch {
-    /* אבחון בלבד — לא שווה לשבור הקלטה בגללו */
+    /* אבחון בלבד - לא שווה לשבור הקלטה בגללו */
   }
 }
 
@@ -122,7 +122,7 @@ export interface RecorderResult {
 
 // ---- מטמון גרדיאנטים ----
 //
-// `drawQuestion` יצר `createLinearGradient` **בכל פריים** — 30 הקצאות
+// `drawQuestion` יצר `createLinearGradient` **בכל פריים** - 30 הקצאות
 // בשנייה, לאורך הקלטה של עד 7 דקות. המסגרת מוסיפה עוד ארבעה, ולכן בלי
 // מטמון התוספת הייתה מכפילה את הלחץ בדיוק במסלול הקריטי.
 //
@@ -147,7 +147,7 @@ function cachedGradient(
   if (!g) {
     g = make();
     // הקנבס משנה גודל רק בפתיחת מצלמה. אם המפתחות מתרבים מעבר לסביר,
-    // מנקים — עדיף לבנות מחדש מלהחזיק גרדיאנטים של גדלים מתים.
+    // מנקים - עדיף לבנות מחדש מלהחזיק גרדיאנטים של גדלים מתים.
     if (forCtx.size > 24) forCtx.clear();
     forCtx.set(key, g);
   }
@@ -173,7 +173,7 @@ export function frameColor(frame: VideoFrameStyle, accent: string): string | nul
 /**
  * מסגרת נצרבת: הצללה רכה מארבעת הקצוות פנימה, ומעליה קו דק בצבע.
  *
- * **פונקציה טהורה** — הדשבורד מרנדר איתה תצוגה מקדימה, ולכן מה שרואים שם
+ * **פונקציה טהורה** - הדשבורד מרנדר איתה תצוגה מקדימה, ולכן מה שרואים שם
  * הוא בדיוק מה שייצרב. חיקוי נפרד היה נפרד מהמציאות בשינוי הראשון.
  */
 export function drawVideoFrame(
@@ -217,7 +217,7 @@ export function drawVideoFrame(
    * עובי הקו נמדד מול הקובץ המוקלט, לא נבחר בעין.
    *
    * ב-0.0015 (2px ב-1080) הקו יצא על הקנבס `[163,143,86]` אבל בקובץ
-   * `[103,101,89]` — דחיסת H.264 עם chroma subsampling מרחה קו דק כל כך
+   * `[103,101,89]` - דחיסת H.264 עם chroma subsampling מרחה קו דק כל כך
    * עד שהזהב כמעט נעלם. 0.0026 (3px) שורד את הקידוד.
    */
   const lw = Math.max(2, Math.round(short * 0.0026));
@@ -275,7 +275,7 @@ function drawSpacedDigits(
  * הגובה קבוע ולא בפינה התחתונה ממש: שורת הכפתורים תופסת את ~10% התחתונים
  * על המסך, וחותמת מתחתיה הייתה נחבאת מאחורי כפתור.
  *
- * **הקריאוּת מושגת במתאר כהה סביב האותיות בלבד — בלי scrim.**
+ * **הקריאוּת מושגת במתאר כהה סביב האותיות בלבד - בלי scrim.**
  *
  * בגרסה קודמת היה כאן גם גרדיאנט כהה בתחתית הפריים. הוא נוסף כשעוד לא
  * היה מתאר, ואז היה הכרחי (התאריך הזהוב נמדד בניגודיות 1.01 מול שמלה
@@ -389,13 +389,13 @@ export class QuestionRecorder {
   private bytes = 0;
   private diagTimer = 0;
   private chunks: Blob[] = [];
-  /** מזהה ההקלטה הנוכחית — המפתח שתחתיו המקטעים נשמרים בדיסק */
+  /** מזהה ההקלטה הנוכחית - המפתח שתחתיו המקטעים נשמרים בדיסק */
   private seq = 0;
   /**
    * תור כתיבה סדרתי. `ondataavailable` סינכרוני והכתיבה אסינכרונית,
    * ובלי תור שתי טרנזקציות היו מתחרות ומשבשות את הסדר.
    */
-  /** ברירת מחדל: כלום לא נצרב מעבר לשאלה — בדיוק כמו לפני הפיצ'ר */
+  /** ברירת מחדל: כלום לא נצרב מעבר לשאלה - בדיוק כמו לפני הפיצ'ר */
   private style: VideoStyle = {
     frame: 'none',
     stamp: 'off',
@@ -417,14 +417,14 @@ export class QuestionRecorder {
   async openCamera(): Promise<void> {
     // מבקשים מהמצלמה את **אותה אוריינטציה** של המסך. drawLoop חותך כדי להתאים
     // ל-canvas, אז מצלמה בכיוון הלא נכון פשוט נזרקת לפח: מצלמה לרוחב מול canvas
-    // פורטרט משאירה רק 42% מרוחב החיישן. כשהכיוונים תואמים — אין חיתוך משמעותי.
+    // פורטרט משאירה רק 42% מרוחב החיישן. כשהכיוונים תואמים - אין חיתוך משמעותי.
     // ideal ולא exact: אם iOS לא יכבד את הבקשה נקבל את מה שיש, ו-drawLoop יסתדר.
     /**
      * הזרם מגיע מ-`camera.ts` ולא מ-`getUserMedia` ישירות.
      *
      * מסך הספירה כבר פתח אותו לתצוגה המקדימה, ולכן כאן הוא **מוחזר מיד**
      * במקום להיפתח מחדש. פתיחה כפולה תוך שבריר שנייה היא בדיוק מה שמייצר
-     * `NotReadableError` ב-iOS. אם הספירה דולגה — זו הפתיחה הראשונה, וזה
+     * `NotReadableError` ב-iOS. אם הספירה דולגה - זו הפתיחה הראשונה, וזה
      * עובד בדיוק כמו קודם.
      */
     this.stream = await acquireCamera();
@@ -437,7 +437,7 @@ export class QuestionRecorder {
     const dispH = window.innerHeight || 1200;
     const aspect = dispW / dispH;
     if (dispH >= dispW) {
-      // portrait — צלע ארוכה CANVAS_LONG_SIDE
+      // portrait - צלע ארוכה CANVAS_LONG_SIDE
       this.canvas.height = CANVAS_LONG_SIDE;
       this.canvas.width = Math.round(CANVAS_LONG_SIDE * aspect);
     } else {
@@ -446,7 +446,7 @@ export class QuestionRecorder {
     }
 
     // אבחון: מה המצלמה **באמת** נתנה. iOS לא תמיד מכבד בקשת פורטרט, ואי-אפשר
-    // לדעת את זה בלי להריץ על המכשיר — לכן נשמר ומוצג בדשבורד.
+    // לדעת את זה בלי להריץ על המכשיר - לכן נשמר ומוצג בדשבורד.
     saveCaptureDiagnostics({
       camera: `${this.video.videoWidth}×${this.video.videoHeight}`,
       canvas: `${this.canvas.width}×${this.canvas.height}`,
@@ -475,7 +475,7 @@ export class QuestionRecorder {
     await this.requestWakeLock();
   }
 
-  /** הזרם החי — למד הווליום. אינו מעביר בעלות; הסגירה נשארת ב-`close()`. */
+  /** הזרם החי - למד הווליום. אינו מעביר בעלות; הסגירה נשארת ב-`close()`. */
   getStream(): MediaStream | null {
     return this.stream;
   }
@@ -499,7 +499,7 @@ export class QuestionRecorder {
     this.mimeType = pickMimeType();
 
     // ניסיון ראשון עם הגדרות האיכות המלאות. אם דפדפן כלשהו לא מקבל את שדות
-    // הקצב — נופלים חזרה להקלטה רגילה במקום לשבור לאורח את הצילום.
+    // הקצב - נופלים חזרה להקלטה רגילה במקום לשבור לאורח את הצילום.
     const opts: MediaRecorderOptions = {
       videoBitsPerSecond: VIDEO_BITS_PER_SECOND,
       audioBitsPerSecond: AUDIO_BITS_PER_SECOND,
@@ -551,7 +551,7 @@ export class QuestionRecorder {
       writeRecordingProgress({
         elapsedMs: Date.now() - this.startedAt,
         bytes: this.bytes,
-        // `this.seq` ולא `this.chunks.length` — המערך הזה כבר לא מתמלא מאז
+        // `this.seq` ולא `this.chunks.length` - המערך הזה כבר לא מתמלא מאז
         // שהמקטעים עברו לדיסק, ולכן המד דיווח **תמיד** אפס. זה בדיוק הכלי
         // שנועד לאבחן כשלים במבחני עומס, והוא נתן נתון שקרי.
         chunks: this.seq,
@@ -596,7 +596,7 @@ export class QuestionRecorder {
     return { blob, mimeType: type };
   }
 
-  /** נשמר לתאימות — אין יותר מקטעים על הדיסק שצריך לנקות */
+  /** נשמר לתאימות - אין יותר מקטעים על הדיסק שצריך לנקות */
   async discardChunks(): Promise<void> {}
 
   /**
@@ -638,7 +638,7 @@ export class QuestionRecorder {
   async stop(): Promise<RecorderResult> {
     const rec = this.recorder;
     if (!rec || rec.state === 'inactive') {
-      // המקליט כבר לא פעיל — אין למה לחכות, מרכיבים ממה שנכתב לדיסק
+      // המקליט כבר לא פעיל - אין למה לחכות, מרכיבים ממה שנכתב לדיסק
       const salvaged = await this.salvage();
       if (salvaged) return salvaged;
       throw new Error(rec ? 'no data' : 'not recording');
@@ -653,7 +653,7 @@ export class QuestionRecorder {
       };
       // רשת ביטחון: אם onstop לא נורה, לא נשאיר את האורח תקוע ב«שומר...»
       const guard = window.setTimeout(() => {
-        console.warn('[recorder] onstop לא נורה — מרכיב ממה שנצבר');
+        console.warn('[recorder] onstop לא נורה - מרכיב ממה שנצבר');
         done();
       }, 5000);
 
@@ -661,7 +661,7 @@ export class QuestionRecorder {
       try {
         rec.stop();
       } catch (err) {
-        console.warn('[recorder] stop() נכשל — מציל את המקטעים', err);
+        console.warn('[recorder] stop() נכשל - מציל את המקטעים', err);
         done();
       }
     });
@@ -684,7 +684,7 @@ export class QuestionRecorder {
      * ⚠️ **`close()` אינו משחרר את המצלמה.**
      *
      * הבעלות היא של המסך, לא של המקליט. «התחל מחדש» סוגר מקליט ופותח
-     * חדש — ואם הסגירה הייתה משחררת את הזרם, היינו מקבלים סגירה־פתיחה
+     * חדש - ואם הסגירה הייתה משחררת את הזרם, היינו מקבלים סגירה־פתיחה
      * מיידית של המצלמה, שזה בדיוק מה שמייצר `NotReadableError` ב-iOS.
      * השחרור נעשה מפורשות ב-`releaseCamera()` ביציאה מהזרימה.
      */
@@ -700,7 +700,7 @@ export class QuestionRecorder {
     const { ctx, canvas, video } = this;
     if (video.readyState < 2) return;
 
-    // ציור הווידאו במילוי (cover) לתוך ה-canvas — חותכים את הווידאו,
+    // ציור הווידאו במילוי (cover) לתוך ה-canvas - חותכים את הווידאו,
     // לא את ה-canvas, כך שהמסגרת שנשמרת = המסגרת שרואים.
     const vw = video.videoWidth || canvas.width;
     const vh = video.videoHeight || canvas.height;
@@ -711,15 +711,15 @@ export class QuestionRecorder {
     let sw = vw;
     let sh = vh;
     if (vAspect > cAspect) {
-      // הווידאו רחב יותר — חותכים את הצדדים
+      // הווידאו רחב יותר - חותכים את הצדדים
       sw = Math.round(vh * cAspect);
       sx = Math.round((vw - sw) / 2);
     } else {
-      // הווידאו גבוה יותר — חותכים למעלה/למטה
+      // הווידאו גבוה יותר - חותכים למעלה/למטה
       sh = Math.round(vw / cAspect);
       sy = Math.round((vh - sh) / 2);
     }
-    // היפוך אופקי של הווידאו בלבד — המצלמה הקדמית מגיעה "במראה" (הפוך),
+    // היפוך אופקי של הווידאו בלבד - המצלמה הקדמית מגיעה "במראה" (הפוך),
     // וכך הצילום יוצא רגיל/טבעי (כמו שאחרים רואים אותנו). השאלה מצוירת
     // אחרי ה-restore כך שהטקסט נשאר קריא ולא מתהפך.
     ctx.save();
@@ -757,12 +757,12 @@ export class QuestionRecorder {
 
     /**
      * ⚠️ **`topMargin` חייב לפנות מקום לסרגל העליון של מסך הצילום**
-     * (`.rec-topbar` — מקליט/שעון/ווליום/התחל-מחדש, שנוסף ב-0.32/0.33).
+     * (`.rec-topbar` - מקליט/שעון/ווליום/התחל-מחדש, שנוסף ב-0.32/0.33).
      *
-     * הסרגל הוא HTML שיושב *מעל* הקנבס, לא חלק ממנו — לכן שום דבר כאן
-     * לא "יודע" עליו אוטומטית. נמדד: גובהו האמיתי ~64–95px (תלוי בדגם
+     * הסרגל הוא HTML שיושב *מעל* הקנבס, לא חלק ממנו - לכן שום דבר כאן
+     * לא "יודע" עליו אוטומטית. נמדד: גובהו האמיתי ~64-95px (תלוי בדגם
      * ובכך ששורת הסטטוס של iOS נשארת גלויה גם ב-standalone ותופסת חלק
-     * מה-safe-area-inset-top). ה-6% הישנים היו 65–82px בלבד על אייפדים
+     * מה-safe-area-inset-top). ה-6% הישנים היו 65-82px בלבד על אייפדים
      * אמיתיים - **פחות** מגובה הסרגל בהרבה דגמים, ומכאן ההתנגשות שנצפתה
      * בפועל. 12% מגובה המסך נותנים מרווח בטוח בכל הדגמים שנבדקו.
      *
@@ -780,10 +780,10 @@ export class QuestionRecorder {
     const scrimHeight = Math.round(topMargin + lines.length * lineHeight + shortSide * 0.05);
 
     // גרדיאנט scrim: כהה למעלה → שקוף למטה (בלי קו חיתוך חד על הווידאו).
-    // ממוטמח לפי גובה ה-scrim — הוא משתנה רק כשמספר שורות הטקסט משתנה,
+    // ממוטמח לפי גובה ה-scrim - הוא משתנה רק כשמספר שורות הטקסט משתנה,
     // ולא 30 פעמים בשנייה כפי שהיה קודם.
     const grad = cachedGradient(ctx, `scrim-${scrimHeight}`, () => {
-      // כהה יותר ומחזיק לאורך רוב ה-scrim לפני שהוא דועך — כדי שהשאלה
+      // כהה יותר ומחזיק לאורך רוב ה-scrim לפני שהוא דועך - כדי שהשאלה
       // תישאר קריאה גם מול רקע בהיר (חלון, נברשת, קיר לבן). נמדד מול רקע
       // בהיר: הערכים הקודמים (0.72→0.45) השאירו טקסט לבן על גבול הקריאוּת.
       const g = ctx.createLinearGradient(0, 0, 0, scrimHeight);
@@ -795,12 +795,12 @@ export class QuestionRecorder {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, scrimHeight);
 
-    // הטקסט — עם צל עדין ללגיבּיליות על כל רקע
+    // הטקסט - עם צל עדין ללגיבּיליות על כל רקע
     ctx.save();
     ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
     ctx.shadowBlur = Math.round(fontSize * 0.35);
     ctx.shadowOffsetY = 2;
-    // מתאר כהה סביב האותיות — אותה טכניקה של החותמת. זה מה שמבטיח קריאוּת
+    // מתאר כהה סביב האותיות - אותה טכניקה של החותמת. זה מה שמבטיח קריאוּת
     // כשהצילום עצמו בהיר בדיוק מאחורי הטקסט, מקום שבו scrim לבדו לא מספיק.
     ctx.lineJoin = 'round';
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
@@ -813,7 +813,7 @@ export class QuestionRecorder {
     });
     ctx.restore();
 
-    // מבטא זהב — קו דק מתחת לשאלה
+    // מבטא זהב - קו דק מתחת לשאלה
     const lastLineBottom = startY + (lines.length - 1) * lineHeight + lineHeight / 2;
     const accentW = Math.round(shortSide * 0.14);
     const accentY = Math.round(lastLineBottom + pad * 0.5);
@@ -834,7 +834,7 @@ export class QuestionRecorder {
         this.wakeLock = await navigator.wakeLock.request('screen');
       }
     } catch {
-      // לא קריטי — נמשיך בלי
+      // לא קריטי - נמשיך בלי
     }
   }
 
@@ -874,7 +874,7 @@ export interface CameraErrorInfo {
   message: string;
   /** האם ניסיון חוזר יכול לעזור (ואז מציגים כפתור «נסה שוב») */
   canRetry: boolean;
-  /** האם זו באמת בעיית הרשאה — רק אז שולחים את המשתמש להגדרות */
+  /** האם זו באמת בעיית הרשאה - רק אז שולחים את המשתמש להגדרות */
   isPermission: boolean;
   /** שלבי פתרון, לפי סדר. מוצגים בכפתור «מה עושים?» */
   fix: string[];
@@ -884,7 +884,7 @@ export interface CameraErrorInfo {
  * ממפה שגיאת `getUserMedia` להודעה נכונה.
  *
  * למה זה חשוב: כל הכשלים נראו קודם כמו "צריך לאשר הרשאות", וזה שלח אנשים
- * לתקן הרשאות תקינות. הכשל הנפוץ באמת בעמדה הוא `NotReadableError` —
+ * לתקן הרשאות תקינות. הכשל הנפוץ באמת בעמדה הוא `NotReadableError` -
  * iOS לוקח את המצלמה כשהאפליקציה עוברת לרקע, וזו לא בעיית הרשאה בכלל.
  */
 export function describeCameraError(err: unknown): CameraErrorInfo {
@@ -954,14 +954,14 @@ export function describeCameraError(err: unknown): CameraErrorInfo {
  * בודק שהמצלמה והמיקרופון נגישים, ומשחרר אותם מיד.
  *
  * שימוש עיקרי: המפעיל מריץ את זה בתחילת הערב, וכך חלונית ההרשאה של iOS
- * מוקפצת **פעם אחת** — לפני שהאורח הראשון מגיע. ההרשאה מחזיקה לאורך טעינת
+ * מוקפצת **פעם אחת** - לפני שהאורח הראשון מגיע. ההרשאה מחזיקה לאורך טעינת
  * הדף, ולכן אף אורח לא ייתקל בה.
  *
  * משחרר את ה-tracks מיד כדי לא לשרוף סוללה ולא להדליק את מחוון הפרטיות.
  */
 export async function checkCameraAccess(): Promise<CameraErrorInfo | null> {
   /**
-   * ⚠️ אם כבר יש זרם חי — **לא פותחים שני**.
+   * ⚠️ אם כבר יש זרם חי - **לא פותחים שני**.
    *
    * התרחיש: המפעיל נכנס לדשבורד בזמן שאורח מצלם ולוחץ «בדוק מצלמה».
    * שתי בקשות מצלמה במקביל ב-iOS עלולות להיכשל או לגזול את המצלמה
@@ -989,14 +989,14 @@ export async function checkCameraAccess(): Promise<CameraErrorInfo | null> {
  * והמיקרופון עובדים» על סמך ההרשאה בלבד, ונמדד בפועל סרטון של דקה עם
  * ערוץ שמע דומם לחלוטין אחרי בדיקה ש«עברה».
  *
- * `ctx` נוצר ע"י הקורא **בתוך הלחיצה**, לפני ה-await הראשון — אחרת iOS
+ * `ctx` נוצר ע"י הקורא **בתוך הלחיצה**, לפני ה-await הראשון - אחרת iOS
  * משהה אותו והמדידה חסרת ערך.
  */
 export async function checkCameraAndMic(
   ctx: AudioContext | null,
   listenMs = 2500,
 ): Promise<{ problem: CameraErrorInfo | null; mic: MicSignal }> {
-  // אורח מצלם ברגע זה — לא פותחים זרם שני ולא מפריעים לו
+  // אורח מצלם ברגע זה - לא פותחים זרם שני ולא מפריעים לו
   if (hasLiveCamera()) return { problem: null, mic: 'unknown' };
 
   let stream: MediaStream;

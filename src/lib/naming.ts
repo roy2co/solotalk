@@ -1,6 +1,6 @@
 // שמות קבצים: בענן ובארכיון שהזוג מקבל.
 //
-// למה קובץ נפרד: אותה החלטה נדרשת בשלושה מקומות — המעלה (`uploader`), הייצוא
+// למה קובץ נפרד: אותה החלטה נדרשת בשלושה מקומות - המעלה (`uploader`), הייצוא
 // המקומי (`Admin`) ואריזת הענן (`cloudArchive`). כשהלוגיקה ישבה בכל אחד בנפרד
 // הם נפרדו זה מזה, ואותו סרטון קיבל שם אחר בכל מסלול.
 import { RELATIONSHIP_SLUG, type Relationship, type Depth } from '../types';
@@ -22,12 +22,12 @@ export function relationshipSlug(rels: Relationship[]): string {
   return (rel && RELATIONSHIP_SLUG[rel]) || 'guest';
 }
 
-/** מיפוי הפוך — משמש לשחזור הקרבה מתוך שם קובץ שכבר בענן */
+/** מיפוי הפוך - משמש לשחזור הקרבה מתוך שם קובץ שכבר בענן */
 const SLUG_TO_LABEL: Record<string, string> = Object.fromEntries(
   Object.entries(RELATIONSHIP_SLUG).map(([label, slug]) => [slug, label]),
 );
 
-/** תווים שאסורים בשמות קבצים. «חברים/חברות מהצבא» מכיל לוכסן — בלי זה נוצרת תיקייה. */
+/** תווים שאסורים בשמות קבצים. «חברים/חברות מהצבא» מכיל לוכסן - בלי זה נוצרת תיקייה. */
 export function safeSegment(s: string): string {
   return s.replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim();
 }
@@ -50,10 +50,10 @@ export function hhmm(ts: number): string {
  * **השייר האקראי נשאר בכוונה.** `uploadBytes` דורס בשקט אובייקט קיים באותו
  * נתיב: שני אורחים מאותה קרבה שנשמרו באותה דקה (שני אייפדים באותו אירוע) היו
  * מוחקים זה את הסרטון של זה, בלי שום שגיאה. השייר כבר קיים במזהה ההקלטה
- * ומבטיח ייחודיות — זו ההגנה, לא קישוט.
+ * ומבטיח ייחודיות - זו ההגנה, לא קישוט.
  *
  * **העומק נוסף כדי שאפשר יהיה למקד «ברכות» בעריכה מאוחרת** (למשל לרכז אותן
- * בסוף הסרט המאוחד) — לפני זה המידע היה קיים רק ב-`SessionMeta` המקומי
+ * בסוף הסרט המאוחד) - לפני זה המידע היה קיים רק ב-`SessionMeta` המקומי
  * ואבד ברגע שהסרטון עזב את המכשיר.
  */
 export function cloudObjectName(
@@ -70,7 +70,7 @@ export function cloudObjectName(
 /**
  * מחלץ את הקרבה בעברית משם קובץ שבענן.
  *
- * מחזיר `null` לקבצים בפורמט הישן (`rec_…`) — הם הועלו לפני השינוי ואין בהם
+ * מחזיר `null` לקבצים בפורמט הישן (`rec_…`) - הם הועלו לפני השינוי ואין בהם
  * את המידע. הם פשוט לא יקבלו את החלק הזה בשם, בלי לשבור כלום.
  */
 export function relationshipFromCloudName(fileName: string): string | null {
@@ -82,7 +82,7 @@ const DEPTHS: Depth[] = ['blessing', 'few', 'many'];
 
 /**
  * מחלץ את העומק משם קובץ שבענן. `null` לקבצים ישנים בלי המקטע הזה
- * (מהפורמט שלפני שהעומק נוסף, או `rec_…` הישן עוד יותר) — בלי לשבור כלום.
+ * (מהפורמט שלפני שהעומק נוסף, או `rec_…` הישן עוד יותר) - בלי לשבור כלום.
  */
 export function depthFromCloudName(fileName: string): Depth | null {
   const part = fileName.replace(/\.[^.]+$/, '').split('_')[1];

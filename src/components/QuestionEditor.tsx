@@ -5,7 +5,7 @@ import { newQuestion } from '../lib/questions';
 interface Props {
   value: Question[];
   onChange: (questions: Question[]) => void;
-  /** כמה פעמים אורחים דילגו על כל שאלה (לפי טקסט) — מוצג ליד השאלה */
+  /** כמה פעמים אורחים דילגו על כל שאלה (לפי טקסט) - מוצג ליד השאלה */
   skipStats?: Record<string, number>;
   /** הקרבות שאפשר לתייג אליהן. ברירת מחדל: כל קרבות החתונה */
   relationships?: readonly Relationship[];

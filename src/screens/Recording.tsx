@@ -19,7 +19,7 @@ interface Props {
   session: Session;
   onFinish: () => void;
   onCancel: () => void;
-  /** מדווח אילו שאלות הוחלפו — נקרא פעם אחת בסיום, אחרי שההקלטה נעצרה */
+  /** מדווח אילו שאלות הוחלפו - נקרא פעם אחת בסיום, אחרי שההקלטה נעצרה */
   onQuestionsSwapped: (texts: string[]) => void;
 }
 
@@ -37,7 +37,7 @@ interface Props {
  * תקרת ההקלטה, **נגזרת מהעומק**.
  *
  * בפריסטייל הזמן הוא המגבלה היחידה (אין מכסת שאלות), ולכן התקרה שם היא
- * ההגדרה מהדשבורד — 4 דקות כברירת מחדל. בשאר העומקים נשארת התקרה
+ * ההגדרה מהדשבורד - 4 דקות כברירת מחדל. בשאר העומקים נשארת התקרה
  * הגלובלית של 5 דקות כרשת ביטחון מפני הקלטה שנשכחה.
  */
 const HARD_MAX_MS = 5 * 60 * 1000;
@@ -74,13 +74,13 @@ export default function Recording({
   // השאלות הן state (ולא קבוע מה-session) כי "להחליף שאלה" מחליפה שאלה במקומה
   const [questions, setQuestions] = useState<string[]>(session.questions);
   const [spares, setSpares] = useState<string[]>(session.spares);
-  // נצבר מקומית ומדווח פעם אחת בסיום — כדי לא לכתוב לאחסון באמצע הקלטה
+  // נצבר מקומית ומדווח פעם אחת בסיום - כדי לא לכתוב לאחסון באמצע הקלטה
   const [swappedOut, setSwappedOut] = useState<string[]>([]);
   const [error, setError] = useState<CameraErrorInfo | null>(null);
   const [retrying, setRetrying] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
-  /** עוצמת המיקרופון 0..1 — לתצוגה בלבד, לעולם לא על הקנבס */
+  /** עוצמת המיקרופון 0..1 - לתצוגה בלבד, לעולם לא על הקנבס */
   const [micLevel, setMicLevel] = useState(0);
   /**
    * המיקרופון לא משדר כלום. `ref` לצד ה-state כי `finish` קורא את הערך
@@ -109,13 +109,13 @@ export default function Recording({
   // ref ל-finish כדי שהטיימר יקרא לגרסה העדכנית ולא ל-closure ישן
   const finishRef = useRef<() => void>(() => {});
 
-  // רמז "הביטו למצלמה" — נעלם אחרי כמה שניות
+  // רמז "הביטו למצלמה" - נעלם אחרי כמה שניות
   useEffect(() => {
     const t = window.setTimeout(() => setShowHint(false), 3500);
     return () => window.clearTimeout(t);
   }, []);
 
-  // תקרת זמן — מסיים ושומר מסודר. האורח לא מאבד דבר; מה שהוקלט נשמר.
+  // תקרת זמן - מסיים ושומר מסודר. האורח לא מאבד דבר; מה שהוקלט נשמר.
   useEffect(() => {
     if (recStartedAt == null) return;
     const id = window.setInterval(() => {
@@ -130,7 +130,9 @@ export default function Recording({
   }, [recStartedAt, maxRecordingMs]);
 
   const isLast = qIndex >= questions.length - 1;
-  // השאלה האחרונה היא תמיד הברכה — ואסור להחליף אותה.
+  // ריק במסלול ברית - שם השאלה הסוגרת מדברת בעד עצמה
+  const closingLabel = copyFor(eventTypeOf(config)).closingLabel;
+  // השאלה האחרונה היא תמיד הברכה - ואסור להחליף אותה.
   // בלי התנאי הזה כפתור «להחליף שאלה» היה מוצג גם על הברכה,
   // ולחיצה עליו הייתה מוחקת אותה מההקלטה לגמרי.
   // במסלול ברית גם הראשונה נעולה: «מי אתם בשבילי» היא מה שהופך את
@@ -140,11 +142,11 @@ export default function Recording({
 
   /**
    * פותח את המצלמה ומתחיל להקליט. מופרד מה-effect כדי ש«נסה שוב» יוכל
-   * לקרוא לו — קריאה ל-getUserMedia **מתוך לחיצה** היא מה שמקפיץ מחדש את
+   * לקרוא לו - קריאה ל-getUserMedia **מתוך לחיצה** היא מה שמקפיץ מחדש את
    * חלונית ההרשאה של iOS.
    */
   const startCamera = async (cancelledRef?: { current: boolean }) => {
-    // סוגרים מקליט קודם לפני ניסיון חוזר — אחרת נשארים tracks תלויים
+    // סוגרים מקליט קודם לפני ניסיון חוזר - אחרת נשארים tracks תלויים
     // וה-NotReadableError פשוט יחזור על עצמו.
     if (recorderRef.current) await recorderRef.current.close();
 
@@ -173,7 +175,7 @@ export default function Recording({
       setRecStartedAt(Date.now());
       setError(null);
       // מד המיקרופון מאזין לזרם החי. `startMicMeter` אינו הבעלים של הזרם
-      // ולכן לא יעצור טראקים — הבעלות נשארת ב-`camera.ts`.
+      // ולכן לא יעצור טראקים - הבעלות נשארת ב-`camera.ts`.
       const stream = recorder.getStream?.();
       if (stream) {
         stopMeterRef.current?.();
@@ -201,7 +203,7 @@ export default function Recording({
         canRetry: false,
         isPermission: false,
         fix: [
-          'יש לפתוח את העמדה ב**ספארי** — כרום באייפון/אייפד לא תומך בהקלטה',
+          'יש לפתוח את העמדה ב**ספארי** - כרום באייפון/אייפד לא תומך בהקלטה',
           'בספארי: שיתוף → «הוסף למסך הבית», ולפתוח משם',
         ],
       });
@@ -219,12 +221,12 @@ export default function Recording({
       cancelledRef.current = true;
       stopMeterRef.current?.();
       stopMeterRef.current = null;
-      // ביציאה מהמסך — בכל מסלול, כולל כשל — המעלה חוזר לעבוד
+      // ביציאה מהמסך - בכל מסלול, כולל כשל - המעלה חוזר לעבוד
       setRecordingActive(false);
       recorderRef.current?.close();
       /**
        * המצלמה משוחררת **רק כשעוזבים את המסך באמת**, ולא בכל הרכבה
-       * מחדש. `takeId` משתנה ב«התחל מחדש» ומפעיל את הניקוי הזה — ולכן
+       * מחדש. `takeId` משתנה ב«התחל מחדש» ומפעיל את הניקוי הזה - ולכן
        * הוא בודק אם המסך עדיין חי לפני שהוא מכבה את המצלמה.
        */
       if (leavingRef.current) releaseCamera();
@@ -233,7 +235,7 @@ export default function Recording({
   }, [takeId]);
 
   /**
-   * מוחק את מה שצולם ומתחיל מיד מחדש — **עם אותן שאלות**.
+   * מוחק את מה שצולם ומתחיל מיד מחדש - **עם אותן שאלות**.
    *
    * לא חוזרים לבחירת קרבה ועומק: האורח כבר בחר, והוא רק רוצה טייק שני.
    * `close()` עוצר את המקליט ומנקה מקטעים; העלאת `takeId` מרכיבה את
@@ -242,7 +244,7 @@ export default function Recording({
    */
   const restartTake = async () => {
     if (saving) return;
-    // ההרכבה הבאה היא טייק חדש ולא יציאה — המצלמה נשארת פתוחה
+    // ההרכבה הבאה היא טייק חדש ולא יציאה - המצלמה נשארת פתוחה
     leavingRef.current = false;
     stopMeterRef.current?.();
     stopMeterRef.current = null;
@@ -265,7 +267,7 @@ export default function Recording({
   };
 
   /**
-   * מחליף את השאלה הנוכחית בשאלה מהרזרבה — **במקומה**, בלי לשנות את אורך
+   * מחליף את השאלה הנוכחית בשאלה מהרזרבה - **במקומה**, בלי לשנות את אורך
    * הרשימה. כך האורח עדיין עונה על אותה כמות שאלות שבחר; רק הוצגו לו יותר.
    */
   const swapQuestion = () => {
@@ -301,7 +303,7 @@ export default function Recording({
   };
 
   const finish = async () => {
-    if (finishingRef.current) return; // כבר בתהליך — טיימר ולחיצה יחד
+    if (finishingRef.current) return; // כבר בתהליך - טיימר ולחיצה יחד
     finishingRef.current = true;
     const recorder = recorderRef.current;
     if (!recorder) return onFinish();
@@ -325,7 +327,7 @@ export default function Recording({
        * משך שמוצג מוזר הוא מטרד. קובץ שלא נפתח הוא אובדן המזכרת.
        */
       const { blob } = await recorder.stop();
-      // ההקלטה כבר נעצרה — מכאן בטוח לכתוב לאחסון בלי לפגוע בפריימים
+      // ההקלטה כבר נעצרה - מכאן בטוח לכתוב לאחסון בלי לפגוע בפריימים
       if (swappedOut.length) onQuestionsSwapped(swappedOut);
       const meta: SessionMeta = {
         eventName: config.activeEvent?.name || config.eventName,
@@ -340,7 +342,7 @@ export default function Recording({
       };
       lastTakeRef.current = { blob, meta }; // שומרים בזיכרון עד שמאומת
       await persist(blob, meta);
-      // ההקלטה נשמרה כרשומה שלמה — המקטעים על הדיסק כבר מיותרים
+      // ההקלטה נשמרה כרשומה שלמה - המקטעים על הדיסק כבר מיותרים
       await recorder.discardChunks();
       await recorder.close();
       onFinish();
@@ -371,7 +373,7 @@ export default function Recording({
           };
         }
       }
-      // לא מאבדים את ההקלטה — נשארים במסך ומאפשרים ניסיון חוזר
+      // לא מאבדים את ההקלטה - נשארים במסך ומאפשרים ניסיון חוזר
       finishingRef.current = false;
       setSaving(false);
       setSaveError(true);
@@ -430,26 +432,26 @@ export default function Recording({
   }
 
   if (saveError) {
-    // אסור להבטיח «ההקלטה אצלנו» בלי לבדוק — הכפתורים תלויים בדיוק בזה.
+    // אסור להבטיח «ההקלטה אצלנו» בלי לבדוק - הכפתורים תלויים בדיוק בזה.
     const hasTake = lastTakeRef.current != null;
     return (
       <div className="screen">
-        <h2>רגע — לא הצלחנו לשמור</h2>
+        <h2>רגע - לא הצלחנו לשמור</h2>
         <p className="subtitle">
           {hasTake
             ? 'ההקלטה עדיין אצלנו ולא אבדה. נסו לשמור שוב, או הורידו אותה כגיבוי.'
-            : 'ההקלטה הופסקה לפני שנשמרה. אפשר לצלם שוב — זה ייקח רגע.'}
+            : 'ההקלטה הופסקה לפני שנשמרה. אפשר לצלם שוב - זה ייקח רגע.'}
         </p>
         <FixHint
           steps={
             hasTake
               ? [
                   'לחצו «נסה לשמור שוב»',
-                  'אם נכשל שוב — «הורדה כגיבוי» שומרת את הסרטון למכשיר, ואפשר להעלות אותו ידנית אחר כך',
-                  'אל תצאו מהמסך עד שאחת מהפעולות הצליחה — ההקלטה חיה בזיכרון בלבד',
+                  'אם נכשל שוב - «הורדה כגיבוי» שומרת את הסרטון למכשיר, ואפשר להעלות אותו ידנית אחר כך',
+                  'אל תצאו מהמסך עד שאחת מהפעולות הצליחה - ההקלטה חיה בזיכרון בלבד',
                 ]
               : [
-                  'אפשר לצלם שוב — ההקלטה לא הגיעה לשלב השמירה',
+                  'אפשר לצלם שוב - ההקלטה לא הגיעה לשלב השמירה',
                   'אם זה חוזר: ייתכן שהאחסון במכשיר מלא. בדשבורד אפשר למחוק הקלטות שכבר גובו לענן',
                 ]
           }
@@ -486,7 +488,7 @@ export default function Recording({
         לזוג. כל מה שמצויר על הקנבס נכנס לסרטון; רק שכבת ה-HTML לא.
       */}
       {/**
-        * סרגל עליון — **כל מה שאינו חלק מהסרטון גר כאן**.
+        * סרגל עליון - **כל מה שאינו חלק מהסרטון גר כאן**.
         *
         * הוא יושב על ה-scrim הכהה שכבר קיים מעל השאלה הצרובה, ולכן לא
         * נדרש שינוי במה שנצרב לקובץ. קודם הווליום וההתחלה־מחדש היו
@@ -515,7 +517,7 @@ export default function Recording({
             </span>
           )}
 
-          {/* מד המיקרופון. HTML בלבד — ראו `micLevel.ts`. */}
+          {/* מד המיקרופון. HTML בלבד - ראו `micLevel.ts`. */}
           <span className="rec-stat rec-vol" title="עוצמת המיקרופון">
             <span className="rec-bars" aria-hidden>
               {[0, 1, 2, 3, 4, 5, 6].map((i) => {
@@ -533,7 +535,7 @@ export default function Recording({
         </div>
 
         {/**
-          * «התחל מחדש» — פעולה **הרסנית**, ולכן בצד הנגדי, בלי מילוי,
+          * «התחל מחדש» - פעולה **הרסנית**, ולכן בצד הנגדי, בלי מילוי,
           * ורחוקה מאשכול הפעולות התחתון. מחיקה בטעות באמצע ברכה היא
           * נזק שאין לו תיקון.
           */}
@@ -551,21 +553,21 @@ export default function Recording({
       )}
 
       {/*
-        המיקרופון לא משדר. **HTML ולא קנבס** — לא נצרב לסרטון.
+        המיקרופון לא משדר. **HTML ולא קנבס** - לא נצרב לסרטון.
         האורח לא יכול לתקן את זה, ולכן ההודעה שולחת אותו למפעיל במקום
         להמשיך לצלם סרטון אילם.
       */}
       {micDead && (
         <div className="rec-mic-dead" role="alert">
           <b>🎤 לא שומעים אתכם</b>
-          <span>המיקרופון לא קולט קול — קראו למפעיל העמדה</span>
+          <span>המיקרופון לא קולט קול - קראו למפעיל העמדה</span>
         </div>
       )}
 
-      {/* מסך הברכה מסומן במפורש — כך אין ספק שזו הסגירה ולא שאלה שנדדה */}
-      {isLast && questions.length > 1 && (
+      {/* מסך הברכה מסומן במפורש - כך אין ספק שזו הסגירה ולא שאלה שנדדה */}
+      {isLast && questions.length > 1 && closingLabel && (
         <div className="rec-closing" role="status">
-          {copyFor(eventTypeOf(config)).closingLabel}
+          {closingLabel}
         </div>
       )}
 
@@ -580,7 +582,7 @@ export default function Recording({
         {!isLast && (
           <button className="btn rec-next" onClick={nextQuestion} disabled={saving}>
             לשאלה הבאה ›{' '}
-            {/* הברכה לא נספרת — «עד 8 שאלות» צריך להציג 1/8 ולא 1/9 */}
+            {/* הברכה לא נספרת - «עד 8 שאלות» צריך להציג 1/8 ולא 1/9 */}
             {questions.length > 2 && (
               <span className="rec-next-count">
                 {qIndex + 1}/{questions.length - 1}

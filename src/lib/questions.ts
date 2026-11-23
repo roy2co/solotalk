@@ -354,7 +354,7 @@ export const DEFAULT_HARDCORE: Question[] = [
  */
 /**
  * הכמות **נגזרת מהקונפיג** ולא קבועה בקוד, כדי שאפשר יהיה לכוונן בין
- * אירועים מהדשבורד. `many` (פריסטייל) מקבל מכסה גבוהה מלאכותית — שם
+ * אירועים מהדשבורד. `many` (פריסטייל) מקבל מכסה גבוהה מלאכותית - שם
  * המגבלה האמיתית היא **הזמן**, ולא מספר השאלות.
  */
 export function questionCount(depth: Depth, cfg?: { depthSettings?: DepthSettings }): number {
@@ -365,7 +365,7 @@ export function questionCount(depth: Depth, cfg?: { depthSettings?: DepthSetting
 }
 
 /**
- * מכסת הפריסטייל. גבוהה בכוונה — רועי אישר שאיש לא מגיע ל-15 שאלות
+ * מכסת הפריסטייל. גבוהה בכוונה - רועי אישר שאיש לא מגיע ל-15 שאלות
  * לפני שתקרת הזמן נגמרת, ולכן זו תקרה תיאורטית שנועדה רק למנוע מאגר ריק.
  */
 const FREESTYLE_POOL = 40;

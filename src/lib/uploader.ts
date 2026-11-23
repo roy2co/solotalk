@@ -2,7 +2,7 @@
 // ומתחדש אוטומטית בחזרת רשת / חזרה לאפליקציה. שכבת בטיחות 1.
 //
 // עמיד לכשלים: לכל העלאה יש watchdog שמבטל אותה אם היא נתקעת (אופליין
-// לרוב לא זורק שגיאה אלא פשוט תוקע) — כך שום דבר לא נשאר "מעלה" לנצח.
+// לרוב לא זורק שגיאה אלא פשוט תוקע) - כך שום דבר לא נשאר "מעלה" לנצח.
 import { ref, uploadBytes, getDownloadURL, getMetadata } from 'firebase/storage';
 import { ensureAuth, getCloudStorage, isCloudConfigured } from './firebase';
 import { recordingStore } from './storage';
@@ -43,13 +43,13 @@ export function setExportActive(active: boolean): void {
 /** נקרא ממסך ההקלטה: `true` בפתיחת המצלמה, `false` ביציאה מהמסך. */
 export function setRecordingActive(active: boolean): void {
   recordingActive = active;
-  // בסיום הקלטה מריצים מיד — ההקלטה החדשה ממתינה לגיבוי
+  // בסיום הקלטה מריצים מיד - ההקלטה החדשה ממתינה לגיבוי
   if (!active) void processQueue();
 }
 let lastError = '';
 const listeners = new Set<() => void>();
 
-/** השגיאה האחרונה מהעלאה (לתצוגה בדשבורד — עוזר לאבחון) */
+/** השגיאה האחרונה מהעלאה (לתצוגה בדשבורד - עוזר לאבחון) */
 export function getLastUploadError(): string {
   return lastError;
 }
@@ -69,7 +69,7 @@ function eventSlug(name: string): string {
   return (name || 'event').replace(/[^\p{L}\p{N}_-]+/gu, '_').slice(0, 40);
 }
 
-/** דוחה promise אם עברה מגבלת זמן — מונע תקיעה אינסופית (למשל אימות אופליין) */
+/** דוחה promise אם עברה מגבלת זמן - מונע תקיעה אינסופית (למשל אימות אופליין) */
 function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
     p,
@@ -82,9 +82,9 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
 /**
  * העלאה אחת עם uploadBytes (PUT יחיד) + timeout.
  * שני תיקונים קריטיים ל-iOS Safari (שם uploadBytesResumable נתקע "no progress"):
- *  1) ממשים את ה-blob לזיכרון (arrayBuffer→Blob חדש) — Safari נתקע בהעלאת
+ *  1) ממשים את ה-blob לזיכרון (arrayBuffer→Blob חדש) - Safari נתקע בהעלאת
  *     Blob שמגובה ישירות ב-IndexedDB.
- *  2) uploadBytes במקום uploadBytesResumable — אמין הרבה יותר ב-iOS לגדלים
+ *  2) uploadBytes במקום uploadBytesResumable - אמין הרבה יותר ב-iOS לגדלים
  *     האלה, בלי פרוטוקול ה-resumable שנתקע.
  */
 async function uploadOnce(path: string, blob: Blob): Promise<string> {
@@ -168,11 +168,11 @@ export async function processQueue(): Promise<void> {
     }
     notify();
 
-    // אימות (אם אין רשת — נכשל תוך 15 שנ' במקום להיתקע)
+    // אימות (אם אין רשת - נכשל תוך 15 שנ' במקום להיתקע)
     await withTimeout(ensureAuth(), 15000, 'auth');
 
     /**
-     * הקלטות שנכשלו **בסבב הזה** — מדלגים עליהן וממשיכים הלאה.
+     * הקלטות שנכשלו **בסבב הזה** - מדלגים עליהן וממשיכים הלאה.
      *
      * הבאג שזה מתקן: קודם כשל בהעלאה עשה `break`, והריצה הבאה בחרה שוב
      * בדיוק את אותה הקלטה. כלומר סרטון אחד שנכשל תמיד (קובץ פגום, גודל
@@ -203,7 +203,7 @@ export async function processQueue(): Promise<void> {
 
       const blob = await recordingStore.get(next.id);
       if (!blob) {
-        // אין blob (נמחק) — מסמנים כדי לא להיתקע
+        // אין blob (נמחק) - מסמנים כדי לא להיתקע
         await recordingStore.update(next.id, { uploadStatus: 'uploaded' });
         continue;
       }
@@ -213,7 +213,7 @@ export async function processQueue(): Promise<void> {
       const ext = blob.type.includes('webm') ? 'webm' : 'mp4';
       const folder = next.meta.eventId || eventSlug(next.meta.eventName);
       /**
-       * `recordings/<זוג>_<תאריך>/<הקלטה>` — **בלי רמת מכשיר**.
+       * `recordings/<זוג>_<תאריך>/<הקלטה>` - **בלי רמת מכשיר**.
        *
        * רמת המכשיר פיצלה אירוע אחד לכמה תיקיות: אירוע שצולם בשני אייפדים
        * נחתך לשניים, ובאג שייצר `deviceId` חדש בכל העלאה פיצל אפילו אייפד
