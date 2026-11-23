@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { AppConfig, SessionMeta } from '../types';
-import { copyFor, depthSettingsOf, displayName, eventTypeOf } from '../lib/eventType';
+import {
+  copyFor,
+  depthSettingsOf,
+  displayName,
+  eventTypeOf,
+  isBritType,
+} from '../lib/eventType';
 import type { Session } from '../App';
 import {
   QuestionRecorder,
@@ -154,15 +160,19 @@ export default function Recording({
     recorderRef.current = recorder;
     // מה שנצרב לקובץ. נקבע לפני `start()` כי הוא חלק מהפריים עצמו.
     // הצבע נקרא מהערכה הפעילה, כך ש«לפי הערכה» עובד לכל שש הערכות.
+    const rootStyle = getComputedStyle(document.documentElement);
+    // במסלול ברית הצבע שנצרב בסרטון (הקו מתחת לשאלה, תאריך החותמת) הוא
+    // צבע העיצוב שנבחר. בחתונה `--brit-video` לא מוגדר והכול נשאר זהב.
+    const britVideo = isBritType(eventTypeOf(config))
+      ? rootStyle.getPropertyValue('--brit-video').trim()
+      : '';
     recorder.setVideoStyle({
       frame: config.videoFrame ?? 'none',
       stamp: config.videoStamp ?? 'off',
       stampName: displayName(config),
       stampDate: (config.activeEvent?.date || config.eventDate || '').trim(),
-      accent:
-        getComputedStyle(document.documentElement)
-          .getPropertyValue('--ac')
-          .trim() || '#C9A84C',
+      accent: britVideo || rootStyle.getPropertyValue('--ac').trim() || '#C9A84C',
+      ...(britVideo ? { underline: britVideo } : {}),
     });
     try {
       await recorder.openCamera();

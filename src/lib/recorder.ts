@@ -373,6 +373,11 @@ export interface VideoStyle {
   stampDate: string;
   /** צבע ההדגשה של הערכה הפעילה, לאפשרות `theme` ולחותמת */
   accent: string;
+  /**
+   * צבע הקו הדק שמתחת לשאלה. חסר = הזהב של החתונות. במסלול ברית הוא
+   * מקבל את צבע העיצוב שנבחר, כדי שהסרטון לא יישא זהב של אירוע אחר.
+   */
+  underline?: string;
 }
 
 export class QuestionRecorder {
@@ -817,7 +822,7 @@ export class QuestionRecorder {
     const lastLineBottom = startY + (lines.length - 1) * lineHeight + lineHeight / 2;
     const accentW = Math.round(shortSide * 0.14);
     const accentY = Math.round(lastLineBottom + pad * 0.5);
-    ctx.fillStyle = '#e0b64c';
+    ctx.fillStyle = this.style.underline || '#e0b64c';
     ctx.fillRect(
       Math.round(canvas.width / 2 - accentW / 2),
       accentY,

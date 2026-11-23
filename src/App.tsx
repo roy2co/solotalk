@@ -16,7 +16,8 @@ import {
   eventTypeOf,
   isBritType,
 } from './lib/eventType';
-import { Garland, HotAirBalloon, NurseryDefs, Pram } from './components/NurseryArt';
+import { NurseryDefs } from './components/NurseryArt';
+import NurseryBackdrop from './components/NurseryBackdrop';
 import WelcomeNursery from './screens/WelcomeNursery';
 import NurseryChoice from './screens/NurseryChoice';
 import { DEPTH_CARD_INFO, DEPTH_ORDER } from './lib/depthCards';
@@ -114,13 +115,20 @@ export default function App() {
     else delete root.dataset.skin;
     // קובע את הצבע המשלים באיורים: כחול מאובק לברית, אפרסק לבריתה
     root.dataset.gender = config && eventTypeOf(config) === 'brita' ? 'f' : 'm';
+    /**
+     * העיצוב שנבחר, על השורש - **גם במסך הצילום**, שאינו מקבל את הסקין.
+     * משם נגזר `--brit-accent`, וכך הכפתורים בכל מסך (כולל הצילום והספירה
+     * לאחור) מקבלים את צבע העיצוב ולא את הזהב של החתונות.
+     */
+    if (design) root.dataset.design = design;
+    else delete root.dataset.design;
     // הגופן שנבחר - גם על השורש, בשביל הכותרות של מסך התודה והספירה
     if (config) {
       for (const [name, value] of Object.entries(britFontVars(britFontOf(config)))) {
         root.style.setProperty(name, value);
       }
     }
-  }, [nursery, lightForBrit, config]);
+  }, [nursery, design, lightForBrit, config]);
 
   /**
    * שמירת קונפיג ל-IndexedDB כשהוא משתנה.
@@ -273,16 +281,16 @@ export default function App() {
       <AuroraBg />
 
       {nursery && <NurseryDefs />}
-      {/* איור קטן במסך התודה. מסך הפתיחה ומסכי הבחירה מציירים את האיורים
-          שלהם בעצמם, ובספירה לאחור המצלמה צריכה את כל תשומת הלב. */}
-      {nursery && screen === 'thankyou' &&
-        (nursery === 'garland' ? (
-          <Garland className="nd-art nd-garland" />
-        ) : nursery === 'pram' ? (
-          <Pram className="nd-art nd-pram" />
-        ) : (
-          <HotAirBalloon className="nd-art nd-pram" teddy />
-        ))}
+      {/*
+        הרקע והאיורים של העיצוב גם מאחורי הספירה לאחור ומסך התודה, שאינם
+        מסכי `.nw` בעצמם. שכבה קבועה שאינה קולטת לחיצות, עם אותו לוח לבן
+        של מסכי הבחירה - כדי שהתוכן יישאר קריא גם על משבצות או פפיונים.
+      */}
+      {nursery && (screen === 'countdown' || screen === 'thankyou') && (
+        <div className={`nw nw-ambient nw-choice nw-${nursery}`} aria-hidden>
+          <NurseryBackdrop design={nursery} mode="choice" />
+        </div>
+      )}
 
       {/*
         האחסון לא נקרא - מוצג בכל מסך, כולל לאורחים.

@@ -3913,24 +3913,6 @@ a.mini-btn {
   overflow: hidden;
 }
 
-/* איור קטן במסכי הביניים (קרבה, עומק, תודה) - מאחורי התוכן */
-.nd-art {
-  position: fixed;
-  z-index: 1;
-  pointer-events: none;
-}
-.nd-garland {
-  top: calc(14px + env(safe-area-inset-top, 0px));
-  left: 50%;
-  width: min(74vw, 620px);
-  transform: translateX(-50%);
-}
-.nd-pram {
-  left: 20px;
-  bottom: 18px;
-  width: min(20vw, 17vh, 170px);
-}
-
 /* ---- מסך הפתיחה ----
    1em = 2.2% מרוחב אייפד לאורך. המסך כולו 45.45em × 65.4em, והנוסחה
    בוחרת את הקטן מבין רוחב וגובה - כך הוא נכנס גם כשהאייפד שוכב. */
@@ -4329,3 +4311,76 @@ a.mini-btn {
 .font-opt.selected { border-color: var(--ac); box-shadow: 0 0 0 2px var(--ac); }
 .font-sample { font-size: 34px; line-height: 1.1; white-space: nowrap; }
 .font-opt .orient-hint { font-family: var(--sans); }
+
+/* ==========================================================================
+   צבע העיצוב, בכל המסכים (data-design על השורש)
+
+   `data-design` מוגדר רק באירוע ברית/בריתה. שני העיצובים היוניסקס חומים;
+   הארבעה הצבעוניים לוקחים את הגוון של האירוע (כחול / ורוד).
+   ========================================================================== */
+:root[data-design] {
+  --brit-accent: #8b6b4f;
+  --brit-ink: #5c4635;
+  /* מה שנצרב בסרטון: בהיר מספיק כדי להיראות על כל רקע של מצלמה */
+  --brit-video: #e3cba6;
+}
+:root[data-design='balloon'],
+:root[data-design='bow'],
+:root[data-design='gingham'],
+:root[data-design='clouds'] {
+  --brit-accent: var(--il-tone-deep);
+  --brit-ink: var(--il-ink);
+  --brit-video: var(--il-tone);
+}
+
+/* מסכי האורח הכלליים (ספירה לאחור, תודה): הגוונים של הסקין הולכים אחרי העיצוב */
+:root[data-skin='nursery'][data-design='balloon'],
+:root[data-skin='nursery'][data-design='bow'],
+:root[data-skin='nursery'][data-design='gingham'],
+:root[data-skin='nursery'][data-design='clouds'] {
+  --bg: #fbfaf8;
+  --text: var(--il-ink);
+  --text-dim: var(--il-ink-dim);
+  --ac: var(--il-tone-deep);
+  --ac-light: var(--il-tone);
+  --ac-deep: var(--il-ink);
+  --ac-glow: var(--il-tone-line);
+  --ac-glow-soft: var(--il-tone-check);
+}
+[data-skin='nursery'][data-design] .btn:not(.secondary):not(.ghost):not(.danger) {
+  background: var(--brit-accent);
+  color: #fff;
+}
+
+/* שכבת הרקע של העיצוב מאחורי הספירה לאחור ומסך התודה */
+.nw.nw-ambient {
+  position: fixed;
+  top: 0;
+  /* גובה מפורש: `.nw` ממורכז עם align-self, ובאלמנט fixed זה מכווץ
+     אותו לגובה התוכן - כלומר לאפס, כי כל מה שבתוכו absolute. */
+  height: 100%;
+  align-self: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* ---- מסך הצילום ----
+   המסך נשאר כהה (הצילום הוא הרקע), אבל הכפתורים לובשים את צבע העיצוב
+   במקום הזהב והאדום של החתונות. «סיום» לבן ולא אדום: אדום חזק על פסטל
+   נראה כמו אזהרה, והכפתור הראשי כאן הוא «לשאלה הבאה». */
+:root[data-design] .recording-screen .rec-next {
+  background: var(--brit-accent);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+:root[data-design] .recording-screen .rec-finish {
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--brit-ink);
+  border-color: transparent;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+:root[data-design] .recording-screen .rec-swap-icon { color: #fff; }
