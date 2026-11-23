@@ -4,7 +4,11 @@
 // `if (brit)` משלו, סוג אירוע נוסף (בר מצווה, יום הולדת) הופך לציד
 // אחרי תנאים. כאן סוג חדש = שורה אחת בטבלה.
 import type { AppConfig, BritDesign, DepthSettings, EventType } from '../types';
-import { DEFAULT_BRIT_DEPTH_SETTINGS, DEFAULT_DEPTH_SETTINGS } from '../types';
+import {
+  BRIT_DESIGN_OPTIONS,
+  DEFAULT_BRIT_DEPTH_SETTINGS,
+  DEFAULT_DEPTH_SETTINGS,
+} from '../types';
 
 /**
  * הסוג **בפועל**. האירוע הפעיל גובר על ההגדרה: הוא ננעל בפתיחה, ולכן
@@ -40,11 +44,16 @@ export function genderize(text: string, type: EventType): string {
 
 /**
  * העיצוב של מסכי האורח. `null` בחתונה - שם אין בחירה, רק ערכת הצבע.
- * `classic` בברית = אותו מראה של החתונות, ולכן הקורא מטפל בו כמו ב-`null`.
+ *
+ * ערך שאינו ברשימה (למשל `classic` שהוסר, ששמור עדיין במכשיר) חוזר
+ * לברירת המחדל במקום לשבור את המסך.
  */
 export function britDesignOf(config: AppConfig): BritDesign | null {
   if (!isBritType(eventTypeOf(config))) return null;
-  return config.britDesign ?? 'pram';
+  const saved = config.britDesign as string | undefined;
+  return BRIT_DESIGN_OPTIONS.some((o) => o.value === saved)
+    ? (saved as BritDesign)
+    : 'pram';
 }
 
 /**

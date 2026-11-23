@@ -3843,6 +3843,26 @@ a.mini-btn {
 :root[data-gender='f'] {
   --il-accent: #e6bfae; /* בריתה: אפרסק */
 }
+/* הגוון של העיצובים הצבעוניים: כחול בברית, ורוד בבריתה. הערכים השקופים
+   כתובים במפורש ולא דרך color-mix, שלא נתמך בגרסאות ספארי ישנות. */
+:root {
+  --il-tone: #9bb6d2;
+  --il-tone-soft: #e3ecf5;
+  --il-tone-deep: #5f81a6;
+  --il-tone-check: rgba(155, 182, 210, 0.42);
+  --il-tone-line: rgba(95, 129, 166, 0.45);
+  --il-ink: #3e556f;
+  --il-ink-dim: rgba(62, 85, 111, 0.74);
+}
+:root[data-gender='f'] {
+  --il-tone: #e8afbd;
+  --il-tone-soft: #f9e4e8;
+  --il-tone-deep: #c07489;
+  --il-tone-check: rgba(232, 175, 189, 0.42);
+  --il-tone-line: rgba(192, 116, 137, 0.45);
+  --il-ink: #86505f;
+  --il-ink-dim: rgba(134, 80, 95, 0.76);
+}
 :root[data-skin='nursery'] {
   --bg: #f7f2ea;
   --text: #5c4635;
@@ -4135,8 +4155,18 @@ a.mini-btn {
 .nw-pram-corner { position: absolute; left: 1.6em; bottom: 1.6em; width: 9em; height: 9.8em; pointer-events: none; }
 
 /* ---- תצוגה מקדימה ממוזערת בדשבורד ---- */
-.design-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+/* שורה אחת שנגללת הצידה - יש יותר עיצובים ממה שנכנס ברוחב הדשבורד */
+.design-picker {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
 .design-opt {
+  flex: 0 0 152px;
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -4168,27 +4198,6 @@ a.mini-btn {
   pointer-events: none;
 }
 .nw.nw-preview { font-size: 1em; width: 45.45em; height: 65.4em; flex: none; }
-.design-preview.classic {
-  background: radial-gradient(70% 34% at 50% 0%, rgba(214, 178, 94, 0.22), transparent 70%), #07070a;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 7em 4em 5em;
-  box-sizing: border-box;
-  color: #f4efe3;
-}
-.dp-name {
-  font: 400 8em/1.1 'Suez One', serif;
-  background: linear-gradient(180deg, #fbeec3, #e2bf6d 45%, #b3862f);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  white-space: nowrap;
-}
-.dp-ring { width: 20em; height: 20em; border-radius: 50%; border: 0.3em solid #d6b25e; margin-top: 3em; box-shadow: 0 0 5em rgba(214, 178, 94, 0.3); }
-.dp-line { font-size: 3em; font-weight: 300; margin-top: auto; }
-.dp-btn { margin-top: 1.2em; font: 700 2.6em 'Heebo', sans-serif; padding: 0.5em 3em; border-radius: 99em; color: #1a1305; background: linear-gradient(180deg, #f8e3a6, #d6b25e 52%, #a97c2a); }
-
 /* הדשבורד מעצב כל `h1` שבתוכו (`.admin h1`), והכלל הזה חזק יותר ממחלקה
    בודדת. בלי החיזוק כאן הקוביות בתצוגה המקדימה יצאו בגודל של כותרת
    דשבורד ולא בקנה המידה של התצוגה. */
@@ -4205,3 +4214,93 @@ a.mini-btn {
 /* במסכי הבחירה כפתור «חזרה» יושב בפינה העליונה - החבל יורד מעט כדי לא להיכנס מתחתיו */
 .nw-choice .nw-clothesline { top: 4.4em; }
 .nw-choice.nw-garland { padding-top: 13.5em; }
+
+/* ==========================================================================
+   העיצובים הצבעוניים: כדור פורח · פפיון · משבצות · עננים
+   ========================================================================== */
+
+/* שכבת הרקע והאיורים. z-index שלילי בתוך ההקשר של `.nw`, כדי שתצויר
+   מאחורי התוכן בלי להפוך כל אלמנט תוכן ל-positioned. */
+.nb { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.nb > * { position: absolute; }
+.nb-balloon, .nb-bow, .nb-clouds { background: #fbfaf8; }
+
+.nw-balloon, .nw-bow, .nw-gingham, .nw-clouds {
+  --nw-ink: var(--il-ink);
+  --nw-dim: var(--il-ink-dim);
+  --nw-wood: var(--il-tone-deep);
+  --nw-line: var(--il-tone-line);
+}
+.nw-balloon .nw-cta, .nw-bow .nw-cta, .nw-gingham .nw-cta, .nw-clouds .nw-cta,
+.nw-balloon .nw-opt-tag, .nw-bow .nw-opt-tag, .nw-gingham .nw-opt-tag, .nw-clouds .nw-opt-tag {
+  background: var(--il-tone-deep);
+  color: #fff;
+  box-shadow: 0 0.35em 1em rgba(60, 70, 90, 0.2);
+}
+
+/* התוכן יושב בתוך המסגרת כקבוצה אחת ממורכזת */
+.nw-framed { justify-content: center; }
+.nw-framed .nw-bottom { margin-top: 2.4em; }
+.nw-framed.nw-balloon { padding: 18em 8em 7em; }
+.nw-framed.nw-gingham { padding: 13em 8em 7em; }
+.nw-framed.nw-bow { padding: 18em 6.5em 9em; }
+.nw-framed.nw-clouds { padding: 8em 5em 6em; }
+.nw-framed .nw-foot {
+  position: absolute;
+  left: 50%;
+  bottom: 1.2em;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.5em 1.4em;
+  white-space: nowrap;
+  border-radius: 99em;
+  background: rgba(255, 255, 255, 0.8);
+  opacity: 0.9;
+}
+.nw-stage-framed { margin-top: 1.6em; flex: none; }
+.nw-stage-framed .nw-photo { width: 12em; height: 12em; }
+.nw-choice.nw-balloon, .nw-choice.nw-bow, .nw-choice.nw-gingham { padding: 12em 7em 5em; }
+
+/* קשת - לוח התוכן של כדור פורח ומשבצות, ושל מסכי הבחירה */
+.nb-arch { left: 4.2em; right: 4.2em; top: 7em; bottom: 2.6em; border-radius: 18.5em 18.5em 1.2em 1.2em; }
+.nb-arch.beige { background: #f1e8dc; }
+.nb-arch.white { background: rgba(255, 255, 255, 0.94); box-shadow: 0 0.6em 2.4em rgba(60, 70, 90, 0.1); }
+.nb-arch.raised { box-shadow: 0 0 0 0.5em rgba(255, 255, 255, 0.55), 0 0.8em 2.6em rgba(60, 70, 90, 0.16); }
+.nw-choice .nb-arch { top: 8.5em; }
+
+.nb-hot.big { left: -2.2em; top: -0.5em; width: 15.5em; height: 23.25em; transform: rotate(-6deg); }
+.nb-hot.small { right: 0.2em; top: 1.5em; width: 9.5em; height: 14.25em; transform: rotate(5deg); }
+.nb-hot.corner { right: -1.2em; bottom: 2.2em; width: 12.5em; height: 18.75em; }
+.nw-choice .nb-hot.big { width: 10.5em; height: 15.75em; left: -2.4em; }
+
+.nb-balloon .nb-cloud.a { left: -6em; bottom: -1em; width: 24em; height: 13.9em; }
+.nb-balloon .nb-cloud.b { right: -7em; bottom: 4em; width: 20em; height: 11.6em; transform: scaleX(-1); }
+.nb-gingham .nb-cloud.a { left: -1.5em; top: 3.2em; width: 16em; height: 9.3em; }
+
+/* משבצות: פס בצבע, רווח, פס בז׳, רווח - לשני הכיוונים */
+.nb-checks {
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, var(--il-tone-check) 0 3em, transparent 3em 6em, rgba(214, 196, 170, 0.4) 6em 9em, transparent 9em 12em),
+    repeating-linear-gradient(90deg, var(--il-tone-check) 0 3em, transparent 3em 6em, rgba(214, 196, 170, 0.4) 6em 9em, transparent 9em 12em),
+    #fbfaf7;
+}
+
+/* פפיון: דוגמת רקע, אליפסה מסולסלת, ופפיון גדול מעליה */
+.nb-pattern { inset: 0; width: 100%; height: 100%; }
+.nb-oval { left: 3.7em; top: 5em; width: 38em; height: 57em; }
+.nb-ribbon { left: 50%; top: -1.6em; width: 21em; height: 19.1em; transform: translateX(-50%); }
+.nw-choice .nb-ribbon { width: 13em; height: 11.8em; top: 0.4em; }
+
+/* עננים ונצנוצים: בלי מסגרת, העננים בפינות */
+.nb-clouds .nb-cloud.a { left: -9em; top: -4em; width: 36em; height: 20.9em; }
+.nb-clouds .nb-cloud.b { right: -9em; bottom: -4em; width: 32em; height: 18.6em; }
+.nb-clouds .nb-cloud.c { right: -7em; top: 1em; width: 19em; height: 11em; transform: scaleX(-1); }
+.nb-clouds .nb-hot.small { right: 2.5em; top: 3em; width: 8.5em; height: 12.75em; }
+.nb-balloons { left: -0.5em; bottom: 2em; width: 8.5em; height: 14.7em; }
+.nb-sparks.a { left: 2em; top: 18em; width: 17em; height: 9.4em; }
+.nb-sparks.b { right: 1em; bottom: 14em; width: 17em; height: 9.4em; transform: scaleX(-1); }
+
+/* בורר סוג האירוע: חתונה בשורה משלה, ברית ובריתה זו לצד זו מתחתיה */
+.event-type-picker { display: grid; grid-template-columns: 1fr 1fr; }
+.event-type-picker .orient-btn:first-child { grid-column: 1 / -1; }

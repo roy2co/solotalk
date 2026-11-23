@@ -199,3 +199,200 @@ export function Garland({ className }: ArtProps) {
     </svg>
   );
 }
+
+// ---------------------------------------------------------------------------
+// האיורים של העיצובים הצבעוניים (כדור פורח, פפיון, משבצות, עננים).
+// הצבע מגיע מ-`--il-tone*`: כחול בברית, ורוד בבריתה. ראו index.css.
+// ---------------------------------------------------------------------------
+
+const TONE = { fill: 'var(--il-tone)' } as const;
+const TONE_DEEP = { fill: 'var(--il-tone-deep)' } as const;
+const TONE_SOFT = { fill: 'var(--il-tone-soft)' } as const;
+
+/** קו אורך של מעטפת הכדור: מהקודקוד, דרך הרוחב המרבי, אל הפתח */
+function meridian(ox: number): string {
+  return `C${60 + ox * 0.8} 8 ${60 + ox} 38 ${60 + ox} 64C${60 + ox} 92 ${60 + ox * 0.5} 112 ${60 + ox * 0.26} 128`;
+}
+/** אותו קו, מהפתח חזרה לקודקוד - כדי לסגור פלח בין שני קווים */
+function meridianBack(ox: number): string {
+  return `C${60 + ox * 0.5} 112 ${60 + ox} 92 ${60 + ox} 64C${60 + ox} 38 ${60 + ox * 0.8} 8 60 6`;
+}
+const GORE_EDGES = [-54, -36, -18, 0, 18, 36, 54];
+
+/**
+ * כדור פורח מפוספס. `teddy` מושיב דובי קטן בסל.
+ * הפסים הם פלחים אמיתיים בין קווי אורך, ולכן הם מתעקלים עם הכדור.
+ */
+export function HotAirBalloon({ className, teddy }: ArtProps & { teddy?: boolean }) {
+  return (
+    <svg className={className} viewBox="0 0 120 180" aria-hidden focusable="false">
+      <g filter="url(#nwc)">
+        {GORE_EDGES.slice(0, -1).map((ox, i) => (
+          <path
+            key={ox}
+            d={`M60 6${meridian(ox)}L${60 + GORE_EDGES[i + 1] * 0.26} 128${meridianBack(GORE_EDGES[i + 1])}Z`}
+            style={i % 2 === 0 ? TONE : undefined}
+            fill={i % 2 === 0 ? undefined : '#fbf6ee'}
+          />
+        ))}
+        <ellipse cx="38" cy="50" rx="9" ry="22" fill="#fff" opacity=".32" transform="rotate(14 38 50)" />
+        <path d="M46 128H74L70 137H50Z" style={TONE_DEEP} />
+        <path d="M50 137L52 151M70 137L68 151M60 137V151" stroke="#8a6a50" strokeWidth=".9" fill="none" />
+        {teddy && (
+          <g>
+            <circle cx="53.5" cy="140.5" r="3.2" fill="#c39a70" />
+            <circle cx="66.5" cy="140.5" r="3.2" fill="#c39a70" />
+            <circle cx="60" cy="146" r="7.4" fill="#cfa77c" />
+            <ellipse cx="60" cy="148.6" rx="3.5" ry="2.7" fill="#efdcc2" />
+            <circle cx="57" cy="144.6" r=".9" fill="#5c4635" />
+            <circle cx="63" cy="144.6" r=".9" fill="#5c4635" />
+            <ellipse cx="60" cy="147.6" rx="1.1" ry=".8" fill="#5c4635" />
+          </g>
+        )}
+        <path d="M49 150H71L69 164Q68 167 65 167H55Q52 167 51 164Z" fill="url(#nTan)" />
+        <path d="M50 155H70M51 160H69" stroke="#8a6a50" strokeWidth=".7" opacity=".4" fill="none" />
+        <path d="M48 150H72" stroke="#8a6a50" strokeWidth="2" strokeLinecap="round" />
+      </g>
+    </svg>
+  );
+}
+
+/** ענן צבעי מים: שכבת צבע ומעליה שכבה לבנה מוזזת, כך שנשאר «צל» רך בתחתית */
+export function Cloud({ className }: ArtProps) {
+  const puffs = (
+    <>
+      <circle cx="46" cy="72" r="30" />
+      <circle cx="80" cy="50" r="36" />
+      <circle cx="122" cy="56" r="34" />
+      <circle cx="156" cy="74" r="26" />
+      <circle cx="100" cy="80" r="34" />
+      <ellipse cx="100" cy="86" rx="80" ry="20" />
+    </>
+  );
+  return (
+    <svg className={className} viewBox="0 0 200 116" aria-hidden focusable="false">
+      <g filter="url(#nwc)">
+        <g style={TONE} opacity=".5">{puffs}</g>
+        <g fill="#fff" opacity=".62" transform="translate(7 -6) scale(.9)">{puffs}</g>
+      </g>
+    </svg>
+  );
+}
+
+/** פפיון גדול עם שני זנבות */
+export function Bow({ className }: ArtProps) {
+  return (
+    <svg className={className} viewBox="0 0 220 200" aria-hidden focusable="false">
+      <g filter="url(#nwc)">
+        <path d="M102 74C86 110 70 150 58 186L84 170C92 140 104 104 112 78Z" style={TONE} />
+        <path d="M118 74C134 110 150 150 164 190L140 172C132 140 122 104 110 78Z" style={TONE} />
+        <path d="M110 60C80 20 20 16 14 50C8 86 70 96 110 70Z" style={TONE} />
+        <path d="M110 60C140 20 200 16 206 50C212 86 150 96 110 70Z" style={TONE} />
+        <g fill="none" style={{ stroke: 'var(--il-tone-deep)' }} strokeWidth="2.4" strokeLinecap="round" opacity=".45">
+          <path d="M104 62C80 44 46 40 30 54M116 62C140 44 174 40 190 54" />
+          <path d="M100 88C92 112 82 140 74 162M120 88C128 112 138 140 148 164" />
+        </g>
+        <g fill="#fff" opacity=".3">
+          <path d="M100 48C78 30 44 26 28 40C50 34 78 40 98 56Z" />
+          <path d="M120 48C142 30 176 26 192 40C170 34 142 40 122 56Z" />
+        </g>
+        <ellipse cx="110" cy="65" rx="13" ry="15" style={TONE_DEEP} />
+        <ellipse cx="107" cy="61" rx="5" ry="7" fill="#fff" opacity=".25" />
+      </g>
+    </svg>
+  );
+}
+
+const SCALLOPS = Array.from({ length: 46 }, (_, i) => {
+  const t = (i / 46) * Math.PI * 2;
+  return { x: 200 + 181 * Math.cos(t), y: 300 + 281 * Math.sin(t) };
+});
+
+/** מסגרת אובלית עם שוליים מסולסלים וקו תפר לבן */
+export function ScallopOval({ className }: ArtProps) {
+  return (
+    <svg className={className} viewBox="0 0 400 600" aria-hidden focusable="false">
+      <g style={TONE} opacity=".55">
+        {SCALLOPS.map((p, i) => (
+          <circle key={i} cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="17" />
+        ))}
+      </g>
+      <ellipse cx="200" cy="300" rx="180" ry="280" fill="#fff" opacity=".7" />
+      <ellipse cx="200" cy="300" rx="172" ry="272" style={TONE_SOFT} />
+      <ellipse
+        cx="200" cy="300" rx="160" ry="260"
+        fill="none" stroke="#fff" strokeWidth="2" strokeDasharray="7 7" opacity=".9"
+      />
+    </svg>
+  );
+}
+
+/** שני בלונים רגילים על חוטים */
+export function Balloons({ className }: ArtProps) {
+  return (
+    <svg className={className} viewBox="0 0 110 190" aria-hidden focusable="false">
+      <g filter="url(#nwc)">
+        <path d="M40 84Q46 130 52 186M72 70Q64 130 54 186" fill="none" stroke="#8a6a50" strokeWidth=".9" opacity=".7" />
+        <ellipse cx="38" cy="52" rx="24" ry="29" fill="url(#nB1)" />
+        <path d="M38 81l-3 5h6z" fill="#c9a882" />
+        <ellipse cx="74" cy="38" rx="25" ry="30" style={TONE} />
+        <path d="M74 68l-3 5h6z" style={TONE_DEEP} />
+        <g fill="#fff" opacity=".45">
+          <ellipse cx="30" cy="42" rx="5" ry="10" transform="rotate(20 30 42)" />
+          <ellipse cx="65" cy="27" rx="5" ry="10" transform="rotate(20 65 27)" />
+        </g>
+      </g>
+    </svg>
+  );
+}
+
+const SPARKS: [number, number, number][] = [
+  [20, 30, 2.2], [48, 12, 1.4], [70, 44, 1.8], [102, 20, 1.2], [130, 52, 2],
+  [156, 16, 1.5], [180, 40, 1.1], [34, 70, 1.3], [88, 78, 1.6], [146, 84, 1.2],
+  [60, 96, 1], [116, 100, 1.4], [172, 72, 1.7], [12, 92, 1.1],
+];
+
+/** נצנוצי זהב פזורים */
+export function Sparkles({ className }: ArtProps) {
+  return (
+    <svg className={className} viewBox="0 0 200 110" aria-hidden focusable="false">
+      <g fill="#d9b767" opacity=".85">
+        {SPARKS.map(([x, y, r], i) => (
+          <circle key={i} cx={x} cy={y} r={r} />
+        ))}
+        <path d="M94 40l1.6 5.4 5.4 1.6-5.4 1.6-1.6 5.4-1.6-5.4-5.4-1.6 5.4-1.6z" />
+        <path d="M160 58l1.2 4 4 1.2-4 1.2-1.2 4-1.2-4-4-1.2 4-1.2z" />
+      </g>
+    </svg>
+  );
+}
+
+/**
+ * רקע של פפיונים קטנים וענפים, ברוח טפט «טואל».
+ * `viewBox` ביחס של אייפד לאורך עם `slice`, כדי שהדוגמה תתכווץ יחד עם
+ * המסך (גם בתצוגה המקדימה) במקום להישאר בגודל פיקסלים קבוע.
+ */
+export function BowPattern({ className }: ArtProps) {
+  return (
+    <svg className={className} viewBox="0 0 454 654" preserveAspectRatio="xMidYMid slice" aria-hidden focusable="false">
+      <defs>
+        <pattern id="nBowTile" width="112" height="112" patternUnits="userSpaceOnUse">
+          <g style={TONE} opacity=".42">
+            <path d="M28 28c-7-9-20-9-21-2c-1 8 13 10 21 4zM28 28c7-9 20-9 21-2c1 8-13 10-21 4z" />
+            <path d="M26 31c-3 8-6 15-9 21l6-3c2-6 4-11 6-17zM30 31c3 8 6 15 9 21l-6-3c-2-6-4-11-6-17z" />
+            <circle cx="28" cy="29" r="3" />
+          </g>
+          <g fill="none" style={{ stroke: 'var(--il-tone)' }} strokeWidth="1.3" opacity=".4" strokeLinecap="round">
+            <path d="M74 70q10 8 8 24M82 82q7-4 12-2M79 76q-7-3-12 0M84 90q6 0 10 4" />
+          </g>
+          <g style={TONE} opacity=".3">
+            <circle cx="92" cy="22" r="2" />
+            <circle cx="14" cy="88" r="2" />
+            <circle cx="56" cy="62" r="1.5" />
+          </g>
+        </pattern>
+      </defs>
+      <rect width="454" height="654" fill="url(#nBowTile)" />
+    </svg>
+  );
+}

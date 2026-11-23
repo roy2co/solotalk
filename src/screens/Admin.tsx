@@ -33,7 +33,12 @@ import {
   DEFAULT_BRIT_INVITE,
   DEFAULT_BRIT_OPEN,
 } from '../lib/britQuestions';
-import { britWelcomeTexts, displayName, eventTypeOf, isBritType } from '../lib/eventType';
+import {
+  britDesignOf,
+  displayName,
+  eventTypeOf,
+  isBritType,
+} from '../lib/eventType';
 import { downscaleImage } from '../lib/image';
 import { csvToQuestions, templateCsv } from '../lib/csv';
 import { recordingStore } from '../lib/storage';
@@ -1067,7 +1072,6 @@ export default function Admin({ config, onSave, onExit }: Props) {
       draft.eventDate ||
       `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`,
   };
-  const previewTexts = britWelcomeTexts(previewConfig);
 
   /**
    * «אחים ואחיות» במסך הקרבה. נשמר מיד ולא דרך «שמור», כי הוא נדרש גם
@@ -1331,7 +1335,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
             </p>
             <div className="field">
               <label>סוג האירוע</label>
-              <div className="orientation-picker">
+              <div className="orientation-picker event-type-picker">
                 {EVENT_TYPE_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
@@ -1877,8 +1881,8 @@ export default function Admin({ config, onSave, onExit }: Props) {
         <h2>עיצוב המסכים - {eventTypeLabel}</h2>
         <p className="step-hint" style={{ marginBottom: 12 }}>
           חל על המסכים שהאורח רואה לפני הצילום ואחריו. <b>מסך הצילום נשאר
-          כהה</b>, והשאלה שנצרבת בסרטון לא משתנה. בשני עיצובי צבעי המים
-          הצבע המשלים מתחלף לבד: כחול מאובק בברית, אפרסק בבריתה.
+          כהה</b>, והשאלה שנצרבת בסרטון לא משתנה. שני הראשונים יוניסקס;
+          באחרים הצבע מתחלף לבד - כחול בברית, ורוד בבריתה.
         </p>
         {/* הפילטר והגרדיאנטים של האיורים - נדרשים לתצוגות המקדימות */}
         <NurseryDefs />
@@ -1887,7 +1891,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
             <button
               key={opt.value}
               className={`design-opt ${
-                (draft.britDesign ?? 'pram') === opt.value ? 'selected' : ''
+                britDesignOf(draft) === opt.value ? 'selected' : ''
               }`}
               onClick={() =>
                 // נשמר מיד, כמו מצב התצוגה - כדי שיציאה מהדשבורד תראה אותו
@@ -1897,37 +1901,23 @@ export default function Admin({ config, onSave, onExit }: Props) {
                 )
               }
             >
-              {opt.value === 'classic' ? (
-                <span className="design-preview classic" aria-hidden>
-                  <span className="dp-name">{previewConfig.babyName}</span>
-                  <span className="dp-ring" />
-                  <span className="dp-line">{previewTexts.invite}</span>
-                  <span className="dp-btn">התחל</span>
-                </span>
-              ) : (
-                <span className="design-preview" aria-hidden>
-                  <WelcomeNursery
-                    preview
-                    config={previewConfig}
-                    design={opt.value}
-                    onStart={() => undefined}
-                  />
-                </span>
-              )}
+              <span className="design-preview" aria-hidden>
+                <WelcomeNursery
+                  preview
+                  config={previewConfig}
+                  design={opt.value}
+                  onStart={() => undefined}
+                />
+              </span>
               <span className="orient-label">{opt.label}</span>
               <span className="orient-hint">{opt.hint}</span>
             </button>
           ))}
         </div>
         <p className="step-hint" style={{ marginTop: 10 }}>
-          התצוגה המקדימה מתעדכנת עם השם, התאריך, התמונה והטקסטים שלמטה.
+          גללו הצידה לעוד עיצובים. התצוגה מתעדכנת עם השם, התאריך, התמונה
+          והטקסטים שלמטה.
         </p>
-        {(draft.britDesign ?? 'pram') !== 'classic' && (
-          <p className="step-hint" style={{ marginTop: 12 }}>
-            בעיצובים האלה «מצב תצוגה» וערכת הצבע שלמטה לא משפיעים על מסכי
-            האורח - רק על הדשבורד.
-          </p>
-        )}
       </div>
       )}
 
@@ -1978,8 +1968,9 @@ export default function Admin({ config, onSave, onExit }: Props) {
       </div>
       )}
 
-      {/* ================== מסך פתיחה: מצב תצוגה ================== */}
-      {nav === 'welcome' && (
+      {/* ================== מסך פתיחה: מצב תצוגה ==================
+          לא בברית/בריתה: שם התצוגה תמיד בהירה, והבורר לא היה משפיע על כלום. */}
+      {nav === 'welcome' && !brit && (
       <div className="admin-section">
         <h2>מצב תצוגה</h2>
         <p className="step-hint" style={{ marginBottom: 12 }}>
@@ -2171,7 +2162,7 @@ export default function Admin({ config, onSave, onExit }: Props) {
         <div className="upload-grid">
           <div className="field">
             <label>
-              {brit ? 'תמונת התינוק/ת (לא חובה - בלי תמונה היא פשוט לא מוצגת)' : 'תמונת הזוג (מוצגת במרכז)'}
+              {brit ? 'תמונת התינוק/ת (לא חובה)' : 'תמונת הזוג (מוצגת במרכז)'}
             </label>
             {draft.couplePhotoDataUrl && (
               <img

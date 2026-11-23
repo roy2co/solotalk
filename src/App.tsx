@@ -9,7 +9,7 @@ import {
   FRIENDS_SUBCATEGORIES,
 } from './types';
 import { britDesignOf, copyFor, eventTypeOf, isBritType } from './lib/eventType';
-import { Garland, NurseryDefs, Pram } from './components/NurseryArt';
+import { Garland, HotAirBalloon, NurseryDefs, Pram } from './components/NurseryArt';
 import WelcomeNursery from './screens/WelcomeNursery';
 import NurseryChoice from './screens/NurseryChoice';
 import { DEPTH_CARD_INFO, DEPTH_ORDER } from './lib/depthCards';
@@ -85,9 +85,7 @@ export default function App() {
    */
   const design = config?.activeEvent ? britDesignOf(config) : null;
   const nursery =
-    design && design !== 'classic' && !['recording', 'admin', 'pin'].includes(screen)
-      ? design
-      : null;
+    design && !['recording', 'admin', 'pin'].includes(screen) ? design : null;
 
   // בהירות התצוגה - ציר נפרד מערכת הצבע, ולכן תכונה נפרדת.
   // עיצוב צבעי המים בנוי על המצב הבהיר, ולכן הוא מדליק אותו בעצמו.
@@ -266,8 +264,10 @@ export default function App() {
       {nursery && screen === 'thankyou' &&
         (nursery === 'garland' ? (
           <Garland className="nd-art nd-garland" />
-        ) : (
+        ) : nursery === 'pram' ? (
           <Pram className="nd-art nd-pram" />
+        ) : (
+          <HotAirBalloon className="nd-art nd-pram" teddy />
         ))}
 
       {/*
@@ -372,17 +372,6 @@ export default function App() {
             label: BRIT_RELATIONSHIP_LABELS[rel] ?? rel,
           }))}
           onChoose={(rel) => chooseBritRelationship([rel as Relationship])}
-          onBack={reset}
-        />
-      )}
-      {screen === 'relationship' && brit && !nursery && (
-        <SubCategoryScreen
-          title={copy.relationshipTitle}
-          subtitle={copy.relationshipSubtitle}
-          options={britRelationships}
-          labels={BRIT_RELATIONSHIP_LABELS}
-          withOther={false}
-          onNext={chooseBritRelationship}
           onBack={reset}
         />
       )}

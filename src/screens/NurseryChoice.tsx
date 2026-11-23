@@ -1,5 +1,5 @@
 import type { BritDesign } from '../types';
-import { Garland, Pram } from '../components/NurseryArt';
+import NurseryBackdrop from '../components/NurseryBackdrop';
 
 export interface ChoiceOption {
   key: string;
@@ -11,7 +11,7 @@ export interface ChoiceOption {
 }
 
 interface Props {
-  design: Exclude<BritDesign, 'classic'>;
+  design: BritDesign;
   title: string;
   subtitle?: string;
   options: ChoiceOption[];
@@ -45,7 +45,7 @@ export default function NurseryChoice({
 
   return (
     <div className={`nw nw-choice nw-${design}`}>
-      {design === 'garland' && <Garland className="nw-clothesline" />}
+      <NurseryBackdrop design={design} mode="choice" />
       <button className="back-link glass" onClick={onBack}>
         ‹ חזרה
       </button>
@@ -73,8 +73,6 @@ export default function NurseryChoice({
           ))}
         </div>
       </div>
-
-      {design === 'pram' && <Pram className="nw-pram-corner" />}
     </div>
   );
 }

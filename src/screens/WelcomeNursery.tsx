@@ -3,11 +3,12 @@ import type { AppConfig, BritDesign } from '../types';
 import { formatEventDate, hebrewDate } from '../lib/event';
 import { DEFAULT_CONFIG } from '../lib/config';
 import { britWelcomeTexts, displayName } from '../lib/eventType';
-import { Garland, Pram, Sprig } from '../components/NurseryArt';
+import { Pram, Sprig } from '../components/NurseryArt';
+import NurseryBackdrop from '../components/NurseryBackdrop';
 
 interface Props {
   config: AppConfig;
-  design: Exclude<BritDesign, 'classic'>;
+  design: BritDesign;
   onStart: () => void;
   /**
    * תצוגה מקדימה ממוזערת בדשבורד. הכפתור הופך לטקסט בלבד (התצוגה יושבת
@@ -46,9 +47,18 @@ export default function WelcomeNursery({ config, design, onStart, preview }: Pro
     letters.length <= MAX_BLOCK_LETTERS &&
     !/\s/.test(name);
 
+  /**
+   * העיצובים הצבעוניים מציבים את התוכן **בתוך מסגרת** (קשת או אליפסה),
+   * ולכן הוא ממורכז כקבוצה אחת והשם מקבל פחות רוחב. בשני העיצובים
+   * היוניסקס האיורים הם חלק מהתוכן עצמו (עגלה ליד התמונה).
+   */
+  const framed = design !== 'pram' && design !== 'garland';
+  const nameRoom = design === 'bow' ? 42 : framed ? 50 : 62;
+  const nameMax = design === 'bow' ? 7.4 : 8.6;
+
   // שם ארוך מתכווץ במקום להישבר לשתי שורות ולדחוף את הכפתור מחוץ למסך
   const nameStyle: CSSProperties = {
-    fontSize: `${Math.min(8.6, 62 / Math.max(letters.length, 1)).toFixed(2)}em`,
+    fontSize: `${Math.min(nameMax, nameRoom / Math.max(letters.length, 1)).toFixed(2)}em`,
   };
   const blockStyle: CSSProperties = {
     fontSize: `${Math.min(4, 21 / Math.max(letters.length, 1)).toFixed(2)}em`,
@@ -61,8 +71,10 @@ export default function WelcomeNursery({ config, design, onStart, preview }: Pro
   );
 
   return (
-    <div className={`nw nw-${design}${preview ? ' nw-preview' : ''}`}>
-      {design === 'garland' && <Garland className="nw-clothesline" />}
+    <div
+      className={`nw nw-${design}${framed ? ' nw-framed' : ''}${preview ? ' nw-preview' : ''}`}
+    >
+      <NurseryBackdrop design={design} mode="welcome" />
 
       {design === 'pram' &&
         (config.logoDataUrl ? (
@@ -99,7 +111,10 @@ export default function WelcomeNursery({ config, design, onStart, preview }: Pro
         בלי תמונה אין עיגול ריק: העגלה תופסת את המרכז לבדה. מקום שמור
         ל«התמונה שלי» נראה כמו משהו ששכחו למלא, מול אורחים.
       */}
-      {!photo ? (
+      {framed ? (
+        // המסגרת והאיורים כבר ממלאים את המסך; תמונה, אם יש, נכנסת קטנה
+        photo && <div className="nw-stage-framed">{photo}</div>
+      ) : !photo ? (
         <div className="nw-stage solo">
           <Sprig className="nw-sprig l" />
           <Sprig className="nw-sprig r" />
